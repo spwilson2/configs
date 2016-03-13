@@ -311,7 +311,8 @@ alias la='ls -A'
 #alias l='ls -CF'
 alias l='ls'
 alias sl='ls'
-alias ytdl="youtube-dl --extract-audio --audio-format mp3 --yes-playlist --ignore-errors"
+alias ytdl="youtube-dl --extract-audio --audio-format mp3 --yes-playlist --ignore-errors;
+find -name "* *" -type f | rename 's/ /_/g'"
 alias uwssh='ssh swilson@cs.wisc.edu'
 alias uplssh='ssh swilson@upl.cs.wisc.edu'
 alias cd..='cd ..'
