@@ -46,7 +46,7 @@ Plugin 'tpope/vim-fugitive'
 " Ctrlp to search
 " Plugin 'kien/ctrlp.vim'
 
-Plugin 'scrooloose/nerdtree'
+" Plugin 'scrooloose/nerdtree'
 
 
 """                  Python Plugins                     """"
@@ -73,7 +73,7 @@ filetype plugin indent on    " required
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 """  =>                  Configs                       """"
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" be iMproved, required
+" Space is leader key
 let mapleader=" "
 
 " Turn backup off, since most stuff is in SVN, git et.c anyway...
@@ -81,11 +81,8 @@ set nobackup
 set nowb
 set noswapfile
 
-" Set the number of undos
-set history=100
+set history=100 " Set the number of undos
 
-" Enable filetype plugins and indentation
-" filetype plugin indent on
 
 " Let vim go past the last char.
 set virtualedit=onemore
@@ -103,21 +100,37 @@ set showcmd
 " Always use *nix line endings.
 set fileformat=unix
 
+" Allow traveling between buffers without the error prompt (liberally hides buffers)
+set hidden
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 """  =>                  Functions                     """"
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-" Technically bad form to have functions here I think..
 function PlainText()
     set spell spelllang=en
     setlocal formatoptions=1
     setlocal noexpandtab
     setlocal wrap
     setlocal linebreak
-    nnoremap j gj       
-    nnoremap k gk
+"   nnoremap j gj       
+"   nnoremap k gk
     set formatprg=par
 endfunction
+
+" Preserves the previous state after running a command
+function! Preserve(command)
+  " Preparation: save last search, and cursor position.
+  let _s=@/
+  let l = line(".")
+  let c = col(".")
+  " Do the business:
+  execute a:command
+  " Clean up: restore previous search history, and cursor position
+  let @/=_s
+  call cursor(l, c)
+endfunction 
+
+
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 """  =>                  Hotkeys                       """"
@@ -150,7 +163,18 @@ noremap <Leader>m mmHmt:%s/<C-V><cr>//ge<cr>'tzt'm
 cnoremap <expr> %% getcmdtype() == ':' ? expand('%:h').'/' : '%%'
 
 " Remove trailing whitespace and preserve the previous search pattern
-nnoremap <silent> <F5> :let _s=@/<Bar>:%s/\s\+$//e<Bar>:let @/=_s<Bar>:nohl<CR>
+nmap _$ :call Preserve("%s/\\s\\+$//e")<CR>
+
+"%% is maped to the directory of % (The active buffer)
+cnoremap %% <C-R>=fnameescape(expand('%:h')).'/'<cr>
+" Edit from current file directory
+map <leader>ew :e %%
+" Split from current file dir
+map <leader>es :sp %%
+" VSplit from current file dir
+map <leader>ev :vsp %%
+" Tab from currrent file dir
+map <leader>et :tabe %%
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 """  =>                  Visuals                       """"
@@ -182,15 +206,13 @@ endif
 set noerrorbells
 set novisualbell
 
-set background=dark
-
 " Move vertically earlier
 set so=7
 
-" Add a bit extra margin to the left
+"" Add a bit extra margin to the left
 "set foldcolumn=1
 
-" Set color of the line numbers
+"" Set color of the line numbers
 ":highlight LineNr term=bold cterm=NONE ctermfg=DarkGrey ctermbg=NONE gui=NONE guifg=DarkGrey guibg=NONE
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -199,14 +221,13 @@ set so=7
 " When searching try to be smart about cases
 set ignorecase
 set smartcase
+set incsearch 
 
 " Highlight search results
 " set hls
 
 " Toggle highlight
 noremap <silent> <Leader>l :set invhls<cr><C-l>
-
-set incsearch 
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 """  =>                  Status                        """"
@@ -227,11 +248,12 @@ endfunction
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 """  =>                  Tabs                          """"
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-set shiftwidth=4
-set tabstop=4
-set expandtab " Use spaces instead of tabs
-set smarttab  " Tab to previous set lines
-set autoindent "Auto indent
+set shiftwidth=4   " Width for > and < vcmds
+set tabstop=4      " Visual length of tabs
+set softtabstop=4  " Length to use spaces at instead of tabs
+set expandtab      " Use spaces instead of tabs
+set smarttab       " Tab to previous set lines
+set autoindent     " Auto indent following lines
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 """  =>                  Filetype configs              """"
@@ -259,14 +281,9 @@ au BufNewFile,BufRead *.py
     \setl expandtab|
     \setl encoding=utf-8|
     \let python_highlight_all=1
+    
 " auto remove trailing whitespace on save
-au BufWritePre *.py :%s/\s\+$//e
-
-"""""         Markdown          """"""
-au BufRead,BufNewFile *.md call PlainText()
-
-"""""         Plain Text        """"""
-au BufRead,BufNewFile *.txt call PlainText()
+au BufWritePre *.py :call Preserve("%s/\\s\\+$//e")<CR>
 
 endif
 
@@ -278,8 +295,8 @@ endif
 let g:syntastic_python_python_exec = '/usr/bin/python3'
 
 " nerdtree
-map <Tab> :NERDTreeToggle<CR>
-autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTree") && b:NERDTree.isTabTree()) | q | endif
+" map <Tab> :NERDTreeToggle<CR>
+" autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTree") && b:NERDTree.isTabTree()) | q | endif
 
 " ctrlp
 " Search through ctags with <,.>
