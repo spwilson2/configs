@@ -93,6 +93,7 @@ set backspace=eol,start,indent
 " Linebreak on 99 characters
 set lbr
 set tw=99
+set formatoptions+=a
 
 " Show the command in progress at bottom
 set showcmd
