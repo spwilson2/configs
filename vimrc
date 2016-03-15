@@ -238,8 +238,9 @@ set autoindent "Auto indent
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 """""         All            """"""
+if has("autocmd")
 " Return to last edit position when opening files
- autocmd BufReadPost *
+ au BufReadPost *
  \ if line("'\"") > 0 && line("'\"") <= line("$") |
  \ exe "normal! g`\"" |
  \ endif
@@ -259,7 +260,7 @@ au BufNewFile,BufRead *.py
     \setl encoding=utf-8|
     \let python_highlight_all=1
 " auto remove trailing whitespace on save
-autocmd BufWritePre *.py :%s/\s\+$//e
+au BufWritePre *.py :%s/\s\+$//e
 
 """""         Markdown          """"""
 au BufRead,BufNewFile *.md call PlainText()
@@ -267,6 +268,7 @@ au BufRead,BufNewFile *.md call PlainText()
 """""         Plain Text        """"""
 au BufRead,BufNewFile *.txt call PlainText()
 
+endif
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 """  =>               Plugin Configs                   """"
