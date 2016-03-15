@@ -286,6 +286,9 @@ au BufNewFile,BufRead *.py
 " auto remove trailing whitespace on save
 au BufWritePre *.py :call Preserve("%s/\\s\\+$//e")<CR>
 
+" Source the vimrc file after saving it
+autocmd bufwritepost .vimrc source $MYVIMRC
+
 endif
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
