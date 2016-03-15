@@ -273,7 +273,7 @@ au FileType make setl noexpandtab "On make files, don't use tab rules
 
 """""         Python          """"""
 " PEP8 Compliant ;)
-au BufNewFile,BufRead *.py 
+au BufNewFile,BufRead *.py
     \setl tabstop=4|
     \setl softtabstop=4|
     \setl shiftwidth=4|
