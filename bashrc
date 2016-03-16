@@ -293,14 +293,12 @@ if [ -x /usr/bin/dircolors ]; then
     test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
     alias ls='ls --color=auto'
     alias dir='dir --color=auto'
-    #alias vdir='vdir --color=auto'
+    alias vdir='vdir --color=auto'
 
     alias grep='grep --color=auto'
-    #alias fgrep='fgrep --color=auto'
-    #alias egrep='egrep --color=auto'
+    alias fgrep='fgrep --color=auto'
+    alias egrep='egrep --color=auto'
 fi
-
-eval $(dircolors -b ~/.dir_colors)
 
 # colored GCC warnings and errors
 #export GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01'
@@ -311,8 +309,7 @@ alias la='ls -A'
 #alias l='ls -CF'
 alias l='ls'
 alias sl='ls'
-alias ytdl="youtube-dl --extract-audio --audio-format mp3 --yes-playlist --ignore-errors;
-find -name "* *" -type f | rename 's/ /_/g'"
+alias ytdl='youtube-dl --extract-audio --audio-format mp3 --yes-playlist --ignore-errors; find -name "* *" -type f | rename "s/ /_/g"'
 alias uwssh='ssh swilson@cs.wisc.edu'
 alias uplssh='ssh swilson@upl.cs.wisc.edu'
 alias cd..='cd ..'
@@ -329,6 +326,8 @@ git config --global user.email "spwilson27@gmail.com"
 git config --global alias.st status
 git config --global alias.up pull
 git config --global alias.update pull
+git config --global alias.co checkout
+git config --global alias.cl clone
 
 
 # enable programmable completion features (you don't need to enable
