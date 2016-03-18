@@ -217,18 +217,6 @@ export PAGER=less
 export EDITOR=vim
 export VISUAL=vim
 
-git config --global push.default simple
-git config --global user.name "Sean Wilson"
-git config --global user.email "spwilson27@gmail.com"
-
-# Add svn aliases..
-git config --global alias.st status
-git config --global alias.up pull
-git config --global alias.update pull
-git config --global alias.co checkout
-git config --global alias.cl clone
-
-
 # enable programmable completion features (you don't need to enable
 # this, if it's already enabled in /etc/bash.bashrc and /etc/profile
 # sources /etc/bash.bashrc).
