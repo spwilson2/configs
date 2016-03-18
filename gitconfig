@@ -1,0 +1,11 @@
+[user]
+        email = spwilson27@gmail.com
+        name = Sean Wilson
+[push]
+        default = simple
+[alias]
+        st = status
+        up = pull
+        update = pull
+        co = checkout
+        cl = clone
