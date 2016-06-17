@@ -11,3 +11,5 @@
         update = pull
         co = checkout
         cl = clone
+[diff]
+        compactionHeuristic = 1
