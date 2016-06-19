@@ -10,14 +10,15 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
 FILES="bashrc     
 gitconfig           
-setup.sh
 dircolors  
-tmux.conf
-vim"
+tmux.conf"
+
+cd $DIR
 
 for FILE in $FILES; do
-    ln -s "$DIR/$FILE" "$HOME/.$FILE"
+    ln -s "$FILE" "$HOME/.$FILE"
 done
 
 # Run vim setup
-bash "$DIR/vim/setup.sh"
+git pull && git submodule init && git submodule update && git submodule status
+bash "vim/setup.sh"
