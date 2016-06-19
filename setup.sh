@@ -10,7 +10,6 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
 FILES="bashrc     
 gitconfig           
-setup.sh
 dircolors  
 tmux.conf
 vim"
