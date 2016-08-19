@@ -13,3 +13,5 @@
         cl = clone
 [diff]
         compactionHeuristic = 1
+[credential]
+	helper = store --file ~/.my-credentials

@@ -4,6 +4,9 @@ case $- in
       *) return;;
 esac
 
+[ -f ~/.bash_aliases ] && source ~/.bash_aliases
+[ -f ~/.bash_profile_extra ] && source ~/.bash_profile_extra
+
 # don't put duplicate lines or lines starting with space in the history.
 # See bash(1) for more options
 HISTCONTROL=ignoredups
@@ -72,7 +75,8 @@ BRed="\[\033[38;5;160m\]"         # Red
 BGreen="\[\033[38;5;028m\]"       # Green
 BGold="\[\033[38;5;220m\]"
 BBlue="\[\033[1;34m\]"        # Blue
-BPurple="\[\033[1;35m\]"      # Purple
+BPurple="\[\033[1;38;5;089m\]"
+UBPurple="\[\033[4;38;5;089m\]"
 BCyan="\[\033[1;36m\]"        # Cyan
 BWhite="\[\033[1;37m\]"       # White
 
@@ -134,7 +138,7 @@ else
 fi
 
 hash git;
-if [ $? -eq 0 ] && [ $use_git_prompt != 'no' ]; then
+if [ $? -eq 0 ] && [ ! "$use_git_prompt" = "no" ]; then
 	use_git_prompt="yes"
 fi
 
@@ -145,19 +149,19 @@ export git_prompt='$(git branch &>/dev/null;\
 if [ $? -eq 0 ]; then \
   echo "$(echo `git status` | grep "nothing to commit" > /dev/null 2>&1; \
   if [ "$?" -eq "0" ]; then \
-    echo "'$GitClean'"$(__git_ps1 "(%s)"); \
+    echo "'$GitClean'"$(__git_ps1 " (%s)"); \
   else \
-    echo "'$GitDirty'"$(__git_ps1 "{%s}"); \
+    echo "'$GitDirty'"$(__git_ps1 " {%s}"); \
   fi) '$BGold'\$ "; \
 else \
   echo " '$Yellow'\$ "; \
 fi)'
 
 if [ "$use_git_prompt" = "yes" ]; then
-	PS1="$DankGreen\T$Color_Off $git_prompt$Color_Off"
+	PS1="$DankGreen \T| $UBPurple\w$Color_Off$BPurple on \h$Color_Off$git_prompt$Color_Off"
 else # No git prompt.
 	if [ "$color_prompt" = "yes" ]; then
-		PS1='\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
+		PS1="$DankGreen\u@\h - \T $Yellow\w \$ "
 	else
 		PS1='\u@\h:\w\$ '
 	fi
@@ -204,7 +208,6 @@ export LESS='-i -w  -g -e -M -X -F -R -P%t?f%f \
 # Start blink
 export LESS_TERMCAP_mb=$(tput bold)
 # Start bold
-#export LESS_TERMCAP_md=$'\E[01;31m'
 export LESS_TERMCAP_md=$(tput bold; tput setaf 5)
 
 # Turn off bold, blink, underline
@@ -222,7 +225,6 @@ export LESS_TERMCAP_ue=$(tput rmul)
 export GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01'
 
 export PAGER=less
-
 export EDITOR=vim
 export VISUAL=vim
 
