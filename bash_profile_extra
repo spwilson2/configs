@@ -1,0 +1,3 @@
+#Add my cross compiler.
+export PATH="$HOME/Projects/chronos-arm/cross/bin:$PATH"
+[ -f ~/.cargo/env ] && source ~/.cargo/env
