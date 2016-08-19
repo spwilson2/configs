@@ -134,7 +134,7 @@ else
 fi
 
 hash git;
-if [ $? -eq 0 ]; then
+if [ $? -eq 0 ] && [ $use_git_prompt != 'no' ]; then
 	use_git_prompt="yes"
 fi
 
@@ -154,22 +154,15 @@ else \
 fi)'
 
 if [ "$use_git_prompt" = "yes" ]; then
-	if [ "$color_prompt" = "yes" ]; then
-		PS1="$DankGreen\T$Color_Off $git_prompt$Color_Off"
-	else # No color prompt
-		PS1="$Time12h $(git_prompt) \$"
-	fi
-
+	PS1="$DankGreen\T$Color_Off $git_prompt$Color_Off"
 else # No git prompt.
 	if [ "$color_prompt" = "yes" ]; then
-	:
+		PS1='\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
 	else
 		PS1='\u@\h:\w\$ '
 	fi
 
 fi
-
-#PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
 
 export LESSOPEN='|/usr/bin/lesspipe.sh %s 2>&-'
                 # Use this if lesspipe.sh exists.
