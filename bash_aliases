@@ -46,6 +46,23 @@ function colors() {
     _color {232..255}
 
 }
+unixpath2dos () {
+    echo "$1" | sed "s/\//\\\/g"
+}
+
+dospath2unix () {
+sed -e 's~\\~/~g' -e 's~J:~/usr~' <<< "$1"
+}
+
+svn_clean () {
+svn status | grep ^\? | cut -c9- | xargs -d \\n rm -r 
+}
+
+alias logs-gather='/home/vagrant/own/ownscripts_stable/logs-gather.py'
+
+svn_diff_cp () {
+    svn diff -r r`/home/vagrant/own/ownscripts_stable/get_first_rev.py`:HEAD
+}
 
 # Some more ls aliases
 alias ll='ls -l'

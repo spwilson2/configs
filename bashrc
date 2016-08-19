@@ -68,8 +68,8 @@ DankGreen="\[\033[38;5;64m\]" # Dank
 
 # Bold
 BBlack="\[\033[1;30m\]"       # Black
-BRed="\[\033[1;31m\]"         # Red
-BGreen="\[\033[38;5;022m\]"       # Green
+BRed="\[\033[38;5;160m\]"         # Red
+BGreen="\[\033[38;5;028m\]"       # Green
 BGold="\[\033[38;5;220m\]"
 BBlue="\[\033[1;34m\]"        # Blue
 BPurple="\[\033[1;35m\]"      # Purple
@@ -138,6 +138,9 @@ if [ $? -eq 0 ]; then
 	use_git_prompt="yes"
 fi
 
+GitClean="$BGreen"
+GitDirty="$BRed"
+
 export git_prompt='$(git branch &>/dev/null;\
 if [ $? -eq 0 ]; then \
   echo "$(echo `git status` | grep "nothing to commit" > /dev/null 2>&1; \
@@ -152,9 +155,7 @@ fi)'
 
 if [ "$use_git_prompt" = "yes" ]; then
 	if [ "$color_prompt" = "yes" ]; then
-		GitClean="$BGreen"
-		GitDirty="$BRed"
-		PS1="$DankGreen$Time12h$Color_Off $git_prompt$Color_Off"
+		PS1="$DankGreen\T$Color_Off $git_prompt$Color_Off"
 	else # No color prompt
 		PS1="$Time12h $(git_prompt) \$"
 	fi
