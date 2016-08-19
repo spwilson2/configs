@@ -6,25 +6,10 @@ esac
 
 # don't put duplicate lines or lines starting with space in the history.
 # See bash(1) for more options
-HISTCONTROL=ignoreboth
-
-# append to the history file, don't overwrite it
-shopt -s histappend
-
-# check the window size after each command and, if necessary,
-# update the values of LINES and COLUMNS.
-shopt -s checkwinsize
-
-# If set, the pattern "**" used in a pathname expansion context will
-# match all files and zero or more directories and subdirectories.
-#shopt -s globstar
+HISTCONTROL=ignoredups
 
 # make less more friendly for non-text input files, see lesspipe(1)
 [ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
-
-# check the window size after each command and, if necessary,
-# update the values of LINES and COLUMNS.
-shopt -s checkwinsize
 
 # enable programmable completion features (you don't need to enable
 # this, if it's already enabled in /etc/bash.bashrc and /etc/profile
@@ -68,7 +53,7 @@ fi
 #  by Mike Stewart - http://MediaDoneRight.com
 
 # Reset
-Color_Off="\[\033[0m\]"       # Text Reset
+Color_Off="\033[0m"       # Text Reset
 
 # Regular Colors
 Black="\[\033[0;30m\]"        # Black
@@ -83,10 +68,10 @@ DankGreen="\[\033[38;5;64m\]" # Dank
 
 # Bold
 BBlack="\[\033[1;30m\]"       # Black
-BRed="\[\033[1;31m\]"         # Red
+BRed="\033[1;31m"         # Red
 BGreen="\[\033[1;32m\]"       # Green
 BYellow="\[\033[1;33m\]"      # Yellow
-BGold="\[$(tput bold)\\[\033[38;5;220m\]"
+BGold="$(tput bold)\[\033[38;5;220m\]"
 BBlue="\[\033[1;34m\]"        # Blue
 BPurple="\[\033[1;35m\]"      # Purple
 BCyan="\[\033[1;36m\]"        # Cyan
@@ -142,39 +127,129 @@ On_IPurple="\[\033[10;95m\]"  # Purple
 On_ICyan="\[\033[0;106m\]"    # Cyan
 On_IWhite="\[\033[0;107m\]"   # White
 
-# Various variables you might want for your PS1 prompt instead
-Time12h="\T"
-Time12a="\@"
-PathShort="\W"
-PathFull="\w"
-NewLine="\n"
-Jobs="\j"
-
-
-if [ "$color_prompt" = yes ]; then
-    #PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
-    PS1=$DankGreen$Time12h$Color_Off' $(git branch &>/dev/null;\
-    if [ $? -eq 0 ]; then \
-      echo "$(echo `git status` | grep "nothing to commit" > /dev/null 2>&1; \
-      if [ "$?" -eq "0" ]; then \
-        # @4 - Clean repository - nothing to commit
-        echo "'$Green'"$(__git_ps1 " (%s)"); \
-      else \
-        # @5 - Changes to working tree
-        echo "'$IRed'"$(__git_ps1 " {%s}"); \
-      fi) '$BGold$PathShort$Color_Off' \$ "; \
-    else \
-      # @2 - Prompt when not in GIT repo
-      echo " '$Yellow$PathShort$Color_Off' \$ "; \
-    fi)'
+# Test user type:
+if [[ ${USER} == "root" ]]; then
+    SU=${Red}           # User is root.
 else
-    PS1='\u@\h:\w\$ '
+    SU=${BCyan}         # User is normal (well ... most of us are).
 fi
-unset color_prompt force_color_prompt
+
+hash git;
+if [ $? -eq 0 ]; then
+	use_git_prompt="yes"
+fi
+
+# Set the prompt dynamically based on git repo. You should set 
+# $GitClean and $GitDirty if you want colors.
+function git_prompt() {
+	git branch &> /dev/null
+
+	if [ "$?" -eq 0 ]; then
+		echo `git status` | grep "nothing to commit" > /dev/null 2>&1;
+
+		if [ "$?" -eq 0 ]; then
+			echo -ne $GitClean"$(__git_ps1 (%s))$Color_Off";
+		else
+			echo -ne $GitDirty"$(__git_ps1 {%s})$Color_Off";
+		fi
+	else
+		echo -ne $Yellow$PathShort$Color_Off;
+	fi
+	
+} 
+export git_prompt
+
+if [ "$use_git_prompt" = "yes" ]; then
+	if [ "$color_prompt" = "yes" ]; then
+		GitClean="$BGold"
+		GitDirty="$BRed"
+		PS1="$DankGreen$Time12h$Color_Off \$(git_prompt) \$ $Color_Off"
+	else # No color prompt
+		PS1="$Time12h $(git_prompt) \$"
+	fi
+
+else # No git prompt.
+	if [ "$color_prompt" = "yes" ]; then
+	:
+	else
+		PS1='\u@\h:\w\$ '
+	fi
+
+fi
+
+#PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
+
+export LESSOPEN='|/usr/bin/lesspipe.sh %s 2>&-'
+                # Use this if lesspipe.sh exists.
+
+# -i Ignore case, -w highlight unread, -g highlight first match, -M verbose prompt
+# -M no init termcap, -F quit if only one screen, -P Prompt 
+export LESS='-i -w  -g -e -M -X -F -R -P%t?f%f \
+:stdin .?pb%pb\%:?lbLine %lb:?bbByte %bb:-...'
+
+#tput Color Capabilities:
+# tput setab [1-7] – Set a background color using ANSI escape
+# tput setb [1-7] – Set a background color
+# tput setaf [1-7] – Set a foreground color using ANSI escape
+# tput setf [1-7] – Set a foreground color
+
+#tput Text Mode Capabilities:
+# tput bold – Set bold mode
+# tput dim – turn on half-bright mode
+# tput smul – begin underline mode
+# tput rmul – exit underline mode
+# tput rev – Turn on reverse mode
+# tput smso – Enter standout mode (bold on rxvt)
+# tput rmso – Exit standout mode
+# tput sgr0 – Turn off all attributes
+
+#Color Code for tput:
+# 0 – Black
+# 1 – Red
+# 2 – Green
+# 3 – Yellow
+# 4 – Blue
+# 5 – Magenta
+# 6 – Cyan
+# 7 – White
+# 8 - Not used
+# 9 - Reset to default color
+
+# LESS man page colors (makes Man pages more readable).
+# Start blink
+export LESS_TERMCAP_mb=$(tput bold)
+# Start bold
+#export LESS_TERMCAP_md=$'\E[01;31m'
+export LESS_TERMCAP_md=$(tput bold; tput setaf 5)
+
+# Turn off bold, blink, underline
+export LESS_TERMCAP_me=$(tput sgr0)
+
+# Start, Stop standout
+export LESS_TERMCAP_so=$(tput smso; tput setaf 1; tput setab 7)
+export LESS_TERMCAP_se=$(tput sgr0)
+
+# Start, Stop underline
+export LESS_TERMCAP_us=$(tput smul)
+export LESS_TERMCAP_ue=$(tput rmul)
 
 # colored GCC warnings and errors
 export GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01'
 
 export PAGER=less
+
 export EDITOR=vim
 export VISUAL=vim
+
+
+shopt -s autocd
+shopt -s cdspell
+shopt -s checkhash
+shopt -s checkjobs
+
+# append to the history file, don't overwrite it
+shopt -s histappend
+
+# check the window size after each command and, if necessary,
+# update the values of LINES and COLUMNS.
+shopt -s checkwinsize
