@@ -29,6 +29,24 @@ function ytdl {
   find -name "* *" -type f | rename "s/ /_/g"
 }
 
+# Print colors to the terminal.
+function colors() {
+    _color(){
+        for c; do
+            printf '\e[48;5;%dm%03d' $c $c
+        done
+        printf '\e[0m \n'
+    }
+
+    IFS=$' \t\n'
+    _color {0..15}
+    for ((i=0;i<6;i++)); do
+        _color $(seq $((i*36+16)) $((i*36+51)))
+    done
+    _color {232..255}
+
+}
+
 # Some more ls aliases
 alias ll='ls -l'
 alias la='ls -A'

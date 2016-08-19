@@ -53,13 +53,13 @@ fi
 #  by Mike Stewart - http://MediaDoneRight.com
 
 # Reset
-Color_Off="\033[0m"       # Text Reset
+Color_Off="\[\033[0m\]"       # Text Reset
 
 # Regular Colors
 Black="\[\033[0;30m\]"        # Black
 Red="\[\033[0;31m\]"          # Red
 Green="\[\033[0;32m\]"        # Green
-Yellow="\[\033[0;33m\]"       # Yellow
+Yellow="\033[0;33m"       # Yellow
 Blue="\[\033[0;34m\]"         # Blue
 Purple="\[\033[0;35m\]"       # Purple
 Cyan="\[\033[0;36m\]"         # Cyan
@@ -68,10 +68,9 @@ DankGreen="\[\033[38;5;64m\]" # Dank
 
 # Bold
 BBlack="\[\033[1;30m\]"       # Black
-BRed="\033[1;31m"         # Red
+BRed="\[\033[1;31m\]"         # Red
 BGreen="\[\033[1;32m\]"       # Green
-BYellow="\[\033[1;33m\]"      # Yellow
-BGold="$(tput bold)\[\033[38;5;220m\]"
+BGold="\[\033[38;5;220m\]"
 BBlue="\[\033[1;34m\]"        # Blue
 BPurple="\[\033[1;35m\]"      # Purple
 BCyan="\[\033[1;36m\]"        # Cyan
@@ -121,7 +120,7 @@ BIWhite="\[\033[1;97m\]"      # White
 On_IBlack="\[\033[0;100m\]"   # Black
 On_IRed="\[\033[0;101m\]"     # Red
 On_IGreen="\[\033[0;102m\]"   # Green
-On_IYellow="\[\033[0;103m\]"  # Yellow
+On_IYellow="\033[0;103m"  # Yellow
 On_IBlue="\[\033[0;104m\]"    # Blue
 On_IPurple="\[\033[10;95m\]"  # Purple
 On_ICyan="\[\033[0;106m\]"    # Cyan
@@ -139,31 +138,23 @@ if [ $? -eq 0 ]; then
 	use_git_prompt="yes"
 fi
 
-# Set the prompt dynamically based on git repo. You should set 
-# $GitClean and $GitDirty if you want colors.
-function git_prompt() {
-	git branch &> /dev/null
-
-	if [ "$?" -eq 0 ]; then
-		echo `git status` | grep "nothing to commit" > /dev/null 2>&1;
-
-		if [ "$?" -eq 0 ]; then
-			echo -ne $GitClean"$(__git_ps1 (%s))$Color_Off";
-		else
-			echo -ne $GitDirty"$(__git_ps1 {%s})$Color_Off";
-		fi
-	else
-		echo -ne $Yellow$PathShort$Color_Off;
-	fi
-	
-} 
-export git_prompt
+export git_prompt='$(git branch &>/dev/null;\
+if [ $? -eq 0 ]; then \
+  echo "$(echo `git status` | grep "nothing to commit" > /dev/null 2>&1; \
+  if [ "$?" -eq "0" ]; then \
+    echo "'$GitClean'"$(__git_ps1 "(%s)"); \
+  else \
+    echo "'$GitDirty'"$(__git_ps1 "{%s}"); \
+  fi) '$BGold'\$ "; \
+else \
+  echo " '$Yellow'\$ "; \
+fi)'
 
 if [ "$use_git_prompt" = "yes" ]; then
 	if [ "$color_prompt" = "yes" ]; then
-		GitClean="$BGold"
+		GitClean="$BGreen"
 		GitDirty="$BRed"
-		PS1="$DankGreen$Time12h$Color_Off \$(git_prompt) \$ $Color_Off"
+		PS1="$DankGreen$Time12h$Color_Off $git_prompt$Color_Off"
 	else # No color prompt
 		PS1="$Time12h $(git_prompt) \$"
 	fi
