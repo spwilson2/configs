@@ -1,5 +1,6 @@
 #!/bin/bash
-set -ex
+set -e
+
 SOURCE="${BASH_SOURCE[0]}"
 while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
 	DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
@@ -14,10 +15,12 @@ cd "$DIR"
 FILES="$(cat FILES)"
 
 set +e
+
 for FILE in $FILES; do
     ln -s "$DIR/$FILE" "$HOME/.$FILE"
 done
 
+set -e
 # Run vim setup
 git pull; git submodule update --init --recursive
 bash "vim/setup.sh"
