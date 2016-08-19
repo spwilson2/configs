@@ -69,7 +69,7 @@ DankGreen="\[\033[38;5;64m\]" # Dank
 # Bold
 BBlack="\[\033[1;30m\]"       # Black
 BRed="\[\033[1;31m\]"         # Red
-BGreen="\[\033[1;32m\]"       # Green
+BGreen="\[\033[38;5;022m\]"       # Green
 BGold="\[\033[38;5;220m\]"
 BBlue="\[\033[1;34m\]"        # Blue
 BPurple="\[\033[1;35m\]"      # Purple
