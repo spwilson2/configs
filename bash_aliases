@@ -61,7 +61,7 @@ svn status | grep ^\? | cut -c9- | xargs -d \\n rm -r
 alias logs-gather='/home/vagrant/own/ownscripts_stable/logs-gather.py'
 
 svn_diff_cp () {
-    svn diff -r r`/home/vagrant/own/ownscripts_stable/get_first_rev.py`:HEAD
+ svn diff -r `svn log --stop-on-copy -q | tail -n2 | head -n1 | grep -Eo 'r[0-9]+'`:HEAD
 }
 
 # Some more ls aliases
