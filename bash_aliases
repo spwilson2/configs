@@ -25,8 +25,7 @@ function killps()   # kill by process name
 }
 
 function ytdl {
-  youtube-dl --extract-audio --audio-format mp3 --yes-playlist --ignore-errors -q $1 &&\
-  find -name "* *" -type f | rename "s/ /_/g"
+  youtube-dl --extract-audio --audio-format mp3 --yes-playlist --ignore-errors -q "$1" 
 }
 
 # Print colors to the terminal.
