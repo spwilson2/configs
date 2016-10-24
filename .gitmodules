@@ -1,3 +1,6 @@
 [submodule "vim"]
 	path = vim
 	url = https://github.com/spwilson2/vim-config
+[submodule "emacs-config"]
+	path = emacs-config
+	url = https://github.com/spwilson2/emacs-config
