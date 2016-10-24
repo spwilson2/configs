@@ -237,6 +237,7 @@ shopt -s checkjobs
 # append to the history file, don't overwrite it
 shopt -s histappend
 
+export GOPATH=/home/swilson/Projects/Gopath
 # check the window size after each command and, if necessary,
 # update the values of LINES and COLUMNS.
 shopt -s checkwinsize
