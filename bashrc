@@ -241,3 +241,10 @@ export GOPATH=/home/swilson/Projects/Gopath
 # check the window size after each command and, if necessary,
 # update the values of LINES and COLUMNS.
 shopt -s checkwinsize
+
+
+uw () {
+	sshpass -p "`cat $HOME/.mypass`" "$@"
+}
+
+alias uwssh="uw ssh best-linux.cs.wisc.edu"
