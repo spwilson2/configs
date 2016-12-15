@@ -1,4 +1,4 @@
 kglobalshortcutsrc is placed in .config on kde5.
 
 To update the vim submodule:
-`git submoudle forecah git pull origin master`
+`git submodule foreach git pull origin master`
