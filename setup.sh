@@ -22,7 +22,7 @@ done
 
 set -e
 # Run vim setup
-
+git config --global credential.helper store
 git pull; git submodule update --init --recursive
 
 bash "vim/setup.sh"
