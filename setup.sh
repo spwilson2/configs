@@ -25,5 +25,4 @@ set -e
 
 git pull; git submodule update --init --recursive
 
-bash "emacs.d/setup.sh"
 bash "vim/setup.sh"

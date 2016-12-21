@@ -6,3 +6,4 @@ gitconfig
 dircolors 
 tmux.conf
 config
+profile
