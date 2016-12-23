@@ -129,8 +129,13 @@ def setup_vim(forced=False):
     vimrc_path = os.path.join(vim_path, 'vimrc')
     symlink_file_to_home('vimrc', vimrc_path, forced)
 
-    command('git submodule update --init')
+    command('git submodule update --init --recursive')
     command('vim +PluginInstall +qall')
+    command('python %s'% os.path.join(vim_path,
+                                      'bundle',
+                                      'YouCompleteMe',
+                                      'install.py'))
+
 
 def update_sudo():
     command('sudo python%d %s' % (sys.version_info[0], os.path.join(DIR, 'init', 'update-sudo.py')))
@@ -140,8 +145,9 @@ def setup_ubuntu(forced=False):
     print('Setting sudo to NOPASSD...')
     update_sudo()
 
-    print('Setting up dotfiles...')
-    setup_dotfiles(forced)
+    print('Installing base programs...')
+    print()
+    install_base_programs()
 
     print('Installing Google Chrome...')
     install_chrome()
@@ -149,9 +155,8 @@ def setup_ubuntu(forced=False):
     print('Adding i3 config...')
     init_i3(forced)
 
-    print('Installing base programs...')
-    print()
-    install_base_programs()
+    print('Setting up dotfiles...')
+    setup_dotfiles(forced)
 
     print('Installing neovim....')
     install_neovim()
@@ -193,6 +198,7 @@ def init_i3(forced=False):
         if not forced:
             print("%s already exists!" % i3config_path)
             print()
+            return
         os.remove(i3config_path)
     os.symlink(i3config_dotfile, i3config_path)
 
