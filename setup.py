@@ -203,12 +203,16 @@ def install_neovim():
     command('sudo apt-get install neovim')
     command('sudo pip3 install neovim')
 
+def update_vim():
+    command('git submodule foreach git pull origin master')
+
 def main():
     # Option Menu:
     main_menu = Menu(name='main menu')
 
     main_menu.add_option('Setup Dotfiles', 1, setup_dotfiles)
     main_menu.add_option('Setup Ubuntu', 2, setup_ubuntu)
+    main_menu.add_option('Update Vim Config', 3, update_vim)
 
     main_menu.add_space()
 
