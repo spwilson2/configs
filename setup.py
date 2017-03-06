@@ -2,7 +2,6 @@
 
 from __future__ import print_function
 import signal
-from argparse import ArgumentParser
 import os
 import sys
 import subprocess
@@ -10,19 +9,22 @@ import urllib
 import tempfile
 
 # Keep input safe in python2
-try: input = raw_input
-except NameError: pass
+try:
+    input = raw_input
+except NameError:
+    pass
 
 DIR = os.path.abspath(os.path.dirname(__file__))
-DEFAULT_PROMPT="Select an option: "
-DOTFILES='dotfiles'
-DOTFILES_AUTO_LIST='FILES'
+DEFAULT_PROMPT = "Select an option: "
+DOTFILES = 'dotfiles'
+DOTFILES_AUTO_LIST = 'FILES'
+
 
 def command(program):
     subprocess.call(program, shell=True)
 
-class Menu(object):
 
+class Menu(object):
     class Option(object):
         def __init__(self, option, select, callback):
             self.option = option
@@ -37,7 +39,7 @@ class Menu(object):
 
     def add_option(self, option, select, callback):
         self._options[str(select)] = Menu.Option(option, select, callback)
-        self._options_ordered.append( Menu.Option(option, select, callback))
+        self._options_ordered.append(Menu.Option(option, select, callback))
 
     def add_space(self, string=''):
         self._options_ordered.append(string)
@@ -74,16 +76,19 @@ class Menu(object):
     def _signal_handler(signal, frame):
         raise Interrupt()
 
+
 class Interrupt(Exception):
     pass
+
 
 def is_file_or_dir(file_path):
     return os.path.isfile(file_path) or os.path.isdir(file_path)
 
+
 def symlink_file_to_home(file_, file_path, forced=False):
 
     home = os.path.expanduser("~")
-    symlink_path = os.path.join(home, '.'+file_)
+    symlink_path = os.path.join(home, '.' + file_)
 
     if not is_file_or_dir(file_path):
         print(file_path)
@@ -101,12 +106,12 @@ def symlink_file_to_home(file_, file_path, forced=False):
     print('Creating symlink for %s' % file_)
     os.symlink(file_path, symlink_path)
 
+
 def setup_dotfiles(forced=False):
 
     dotfiles_dir = os.path.join(DIR, DOTFILES)
 
     dotfiles_list = os.path.join(dotfiles_dir, DOTFILES_AUTO_LIST)
-
 
     with open(dotfiles_list, 'r') as dotfiles_list:
         for file_ in dotfiles_list.readlines():
@@ -120,6 +125,8 @@ def setup_dotfiles(forced=False):
                 print(e)
 
     setup_vim(forced)
+    install_spacemacs(forced)
+
 
 def setup_vim(forced=False):
 
@@ -131,14 +138,27 @@ def setup_vim(forced=False):
 
     command('git submodule update --init --recursive')
     command('vim +PluginInstall +qall')
-    command('python %s'% os.path.join(vim_path,
-                                      'bundle',
-                                      'YouCompleteMe',
-                                      'install.py'))
+    command('python %s' % os.path.join(vim_path, 'bundle', 'YouCompleteMe',
+                                       'install.py'))
+
+
+def install_spacemacs(forced=False):
+    home = os.path.expanduser("~")
+    emacsd = os.path.join(home, '.emacs.d')
+
+    if os.path.isdir(emacsd) or os.path.isfile(emacsd):
+        if not forced:
+            print("%s already exists!" % emacsd)
+            print()
+            return
+        os.remove(emacsd)
+    command('git clone https://github.com/syl20bnr/spacemacs %s' % str(emacsd))
 
 
 def update_sudo():
-    command('sudo python%d %s' % (sys.version_info[0], os.path.join(DIR, 'init', 'update-sudo.py')))
+    command('sudo python%d %s' %
+            (sys.version_info[0], os.path.join(DIR, 'init', 'update-sudo.py')))
+
 
 def setup_ubuntu(forced=False):
 
@@ -158,11 +178,17 @@ def setup_ubuntu(forced=False):
     print('Setting up dotfiles...')
     setup_dotfiles(forced)
 
+    print('Installing spacemacs....')
+    install_spacemacs()
+
     print('Installing neovim....')
     install_neovim()
 
+
 def install_chrome():
-    f = urllib.urlopen("https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb")
+    f = urllib.urlopen(
+        "https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb"
+    )
     deb = f.read()
     _, temp = tempfile.mkstemp()
     print(temp)
@@ -170,6 +196,7 @@ def install_chrome():
         file_.write(deb)
     command('sudo dpkg -i --force-depends %s' % temp)
     command('sudo apt-get install -f -y')
+
 
 def install_base_programs():
     with open(os.path.join(DIR, 'init', 'ubuntu-programs'), 'r') as programs:
@@ -184,11 +211,12 @@ def install_base_programs():
 
 def init_i3(forced=False):
 
-    command('gsettings set org.gnome.desktop.background show-desktop-icons false')
+    command(
+        'gsettings set org.gnome.desktop.background show-desktop-icons false')
 
     home = os.path.expanduser("~")
     i3config_dir = os.path.join(home, '.config', 'i3')
-    i3config_path = os.path.join(i3config_dir,'config')
+    i3config_path = os.path.join(i3config_dir, 'config')
     i3config_dotfile = os.path.join(DIR, 'dotfiles', 'i3.config')
 
     if not os.path.isdir(i3config_dir):
@@ -202,6 +230,7 @@ def init_i3(forced=False):
         os.remove(i3config_path)
     os.symlink(i3config_dotfile, i3config_path)
 
+
 def install_neovim():
     # Neovim, relies on python3
     command('sudo add-apt-repository ppa:neovim-ppa/unstable')
@@ -209,8 +238,10 @@ def install_neovim():
     command('sudo apt-get install neovim')
     command('sudo pip3 install neovim')
 
+
 def update_vim():
     command('git submodule foreach git pull origin master')
+
 
 def main():
     # Option Menu:
@@ -222,14 +253,15 @@ def main():
 
     main_menu.add_space()
 
+    forced_setup_dotfiles = lambda: setup_dotfiles(forced=True)
+    forced_setup_ubuntu = lambda: setup_ubuntu(forced=True)
 
-    forced_setup_dotfiles = lambda :setup_dotfiles(forced=True)
-    forced_setup_ubuntu   = lambda :setup_ubuntu(forced=True)
-
-    main_menu.add_option('Setup Dotfiles (forced)', '1f', forced_setup_dotfiles)
+    main_menu.add_option('Setup Dotfiles (forced)', '1f',
+                         forced_setup_dotfiles)
     main_menu.add_option('Setup Ubuntu (forced)', '2f', forced_setup_ubuntu)
 
     main_menu.prompt()
+
 
 if __name__ == '__main__':
     main()
