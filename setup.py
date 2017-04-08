@@ -96,7 +96,7 @@ def symlink_file_to_home(file_, file_path, forced=False):
         print()
         return
 
-    if is_file_or_dir(file_path):
+    if is_file_or_dir(symlink_path):
         if not forced:
             print("%s already exists!" % symlink_path)
             print()
@@ -146,12 +146,12 @@ def install_spacemacs(forced=False):
     home = os.path.expanduser("~")
     emacsd = os.path.join(home, '.emacs.d')
 
-    if os.path.isdir(emacsd) or os.path.isfile(emacsd):
+    if os.path.isdir(emacsd):
         if not forced:
             print("%s already exists!" % emacsd)
             print()
             return
-        os.remove(emacsd)
+        command('rm -rf .emacs.d')
     command('git clone https://github.com/syl20bnr/spacemacs %s' % str(emacsd))
 
 
@@ -173,7 +173,7 @@ def setup_ubuntu(forced=False):
     install_chrome()
 
     print('Adding i3 config...')
-    init_i3(forced)
+    init_i3(forced, ubuntu=True)
 
     print('Setting up dotfiles...')
     setup_dotfiles(forced)
@@ -209,7 +209,7 @@ def install_base_programs():
     command('sudo apt-get install -y %s' % ' '.join(programs))
 
 
-def init_i3(forced=False):
+def init_i3(forced=False, ubuntu=False):
 
     command(
         'gsettings set org.gnome.desktop.background show-desktop-icons false')
@@ -220,7 +220,7 @@ def init_i3(forced=False):
     i3config_dotfile = os.path.join(DIR, 'dotfiles', 'i3.config')
 
     if not os.path.isdir(i3config_dir):
-        os.mkdirs(i3config_dir)
+        os.makedirs(i3config_dir)
 
     if os.path.isfile(i3config_path):
         if not forced:
@@ -229,6 +229,10 @@ def init_i3(forced=False):
             return
         os.remove(i3config_path)
     os.symlink(i3config_dotfile, i3config_path)
+
+    if ubuntu:
+        # Turn off nautilus full screen..
+        command('gsettings set org.gnome.desktop.background show-desktop-icons false')
 
 
 def install_neovim():
@@ -241,7 +245,6 @@ def install_neovim():
 
 def update_vim():
     command('git submodule foreach git pull origin master')
-
 
 def main():
     # Option Menu:
