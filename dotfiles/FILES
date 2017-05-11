@@ -3,6 +3,7 @@ bash_profile
 bash_profile_extra 
 bash_aliases 
 gitconfig 
+gitignore_global
 dircolors 
 tmux.conf
 profile

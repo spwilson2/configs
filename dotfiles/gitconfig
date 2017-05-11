@@ -1,5 +1,6 @@
 [core]
         editor = vim
+	excludesfile = /home/swilson/.gitignore_global
 [user]
         email = spwilson27@gmail.com
         name = Sean Wilson
