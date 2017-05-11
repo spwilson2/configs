@@ -18,11 +18,22 @@ DIR = os.path.abspath(os.path.dirname(__file__))
 DEFAULT_PROMPT = "Select an option: "
 DOTFILES = 'dotfiles'
 DOTFILES_AUTO_LIST = 'FILES'
+LOCAL_BIN_PATH = os.path.expanduser('~/.local/bin')
+SCRIPT_EXPORTS_FILE=DIR+'/config/SCRIPT_EXPORTS'
 
+VERBOSE=''
+V_WARN  = 1
+V_INFO  = 2
+V_DEBUG = 3
 
-def command(program):
-    subprocess.call(program, shell=True)
+def printv(level, verbosity=len(VERBOSE), *args, **kwargs):
+    if (level >= verbosity):
+        print(*args, **kwargs)
 
+def command(program, cwd=DIR):
+    ''' Run a shell command, default directory is the DIR of this script.'''
+    printv(V_INFO, "Executing: %s" % program)
+    subprocess.call(program, shell=True, cwd=cwd)
 
 class Menu(object):
     class Option(object):
@@ -138,7 +149,7 @@ def setup_vim(forced=False):
 
     command('git submodule update --init --recursive')
     command('vim +PluginInstall +qall')
-    command('python %s' % os.path.join(vim_path, 'bundle', 'YouCompleteMe',
+    command('python3 %s' % os.path.join(vim_path, 'bundle', 'YouCompleteMe',
                                        'install.py'))
 
 
@@ -183,7 +194,6 @@ def setup_ubuntu(forced=False):
 
     print('Installing neovim....')
     install_neovim()
-
 
 def install_chrome():
     f = urllib.urlopen(
@@ -242,6 +252,26 @@ def install_neovim():
     command('sudo apt-get install neovim')
     command('sudo pip3 install neovim')
 
+def setup_personal_scripts(forced=False):
+
+    if not os.path.isdir(LOCAL_BIN_PATH):
+        os.makedirs(LOCAL_BIN_PATH)
+
+    with open(SCRIPT_EXPORTS_FILE, 'r') as scripts_list:
+        for file_ in scripts_list:
+            file_ = file_.strip()
+            script_file_path = DIR+'/personal-scripts/' + file_
+            bin_link_path = "%s/%s" % (LOCAL_BIN_PATH, file_)
+
+            if os.path.isfile(bin_link_path) or os.path.islink(bin_link_path):
+                if not forced:
+                    print("%s already exists!" % bin_link_path)
+                    print()
+                    continue
+                os.remove(bin_link_path)
+            os.symlink(script_file_path, bin_link_path)
+
+
 
 def update_vim():
     command('git submodule foreach git pull origin master')
@@ -250,18 +280,21 @@ def main():
     # Option Menu:
     main_menu = Menu(name='main menu')
 
-    main_menu.add_option('Setup Dotfiles', 1, setup_dotfiles)
-    main_menu.add_option('Setup Ubuntu', 2, setup_ubuntu)
+    main_menu.add_option('Setup Ubuntu', 1, setup_ubuntu)
+    main_menu.add_option('Setup Dotfiles', 2, setup_dotfiles)
     main_menu.add_option('Update Vim Config', 3, update_vim)
+    main_menu.add_option('Add My Scripts to PATH', 4, setup_personal_scripts)
 
     main_menu.add_space()
 
     forced_setup_dotfiles = lambda: setup_dotfiles(forced=True)
     forced_setup_ubuntu = lambda: setup_ubuntu(forced=True)
+    forced_setup_personal_scripts = lambda: setup_personal_scripts(forced=True)
 
-    main_menu.add_option('Setup Dotfiles (forced)', '1f',
+    main_menu.add_option('Setup Ubuntu (forced)', '1f', forced_setup_ubuntu)
+    main_menu.add_option('Setup Dotfiles (forced)', '2f',
                          forced_setup_dotfiles)
-    main_menu.add_option('Setup Ubuntu (forced)', '2f', forced_setup_ubuntu)
+    main_menu.add_option('Add My Scripts to PATH', '4f', forced_setup_personal_scripts)
 
     main_menu.prompt()
 

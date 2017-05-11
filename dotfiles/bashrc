@@ -138,6 +138,7 @@ else
 fi
 
 hash git;
+use_git_prompt="no"
 if [ $? -eq 0 ] && [ ! "$use_git_prompt" = "no" ]; then
 	use_git_prompt="yes"
 fi
@@ -161,7 +162,7 @@ if [ "$use_git_prompt" = "yes" ]; then
 	PS1="$DankGreen \T| $UBPurple\w$Color_Off$BPurple on \h$Color_Off$git_prompt$Color_Off"
 else # No git prompt.
 	if [ "$color_prompt" = "yes" ]; then
-		PS1="$DankGreen\u@\h - \T $Yellow\w \$ "
+		PS1="$DankGreen\u@\h - \T $Yellow\w \$ $Color_Off"
 	else
 		PS1='\u@\h:\w\$ '
 	fi
