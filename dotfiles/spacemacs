@@ -313,7 +313,14 @@ you should place your code here."
   (add-hook 'python-mode-hook #'(lambda () (modify-syntax-entry ?_ "w")))
   ;; set specific browser to open links
   (setq browse-url-browser-function 'browse-url-chrome)
-  (setq c-basic-offset 4)
+  (add-hook 'prog-mode-hook
+    (lambda ()
+      (setq-default indent-tabs-mode t
+                    tab-width 4
+                    c-basic-offset 4)
+      (setq indent-tabs-mode t
+            tab-width 4
+            c-basic-offset 4)))
   )
 
 ;; Do not write anything past this comment. This is where Emacs will
