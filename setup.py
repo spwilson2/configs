@@ -20,14 +20,16 @@ DOTFILES = 'dotfiles'
 DOTFILES_AUTO_LIST = 'FILES'
 LOCAL_BIN_PATH = os.path.expanduser('~/.local/bin')
 SCRIPT_EXPORTS_FILE=DIR+'/config/SCRIPT_EXPORTS'
+HOME = os.path.expanduser("~")
+
 
 VERBOSE=''
 V_WARN  = 1
 V_INFO  = 2
 V_DEBUG = 3
 
-def printv(level, verbosity=len(VERBOSE), *args, **kwargs):
-    if (level >= verbosity):
+def printv(level, verbosity=VERBOSE, *args, **kwargs):
+    if (level >= len(verbosity)):
         print(*args, **kwargs)
 
 def command(program, cwd=DIR):
@@ -98,8 +100,7 @@ def is_file_or_dir(file_path):
 
 def symlink_file_to_home(file_, file_path, forced=False):
 
-    home = os.path.expanduser("~")
-    symlink_path = os.path.join(home, '.' + file_)
+    symlink_path = os.path.join(HOME, '.' + file_)
 
     if not is_file_or_dir(file_path):
         print(file_path)
@@ -154,8 +155,7 @@ def setup_vim(forced=False):
 
 
 def install_spacemacs(forced=False):
-    home = os.path.expanduser("~")
-    emacsd = os.path.join(home, '.emacs.d')
+    emacsd = os.path.join(HOME, '.emacs.d')
 
     if os.path.isdir(emacsd):
         if not forced:
@@ -193,7 +193,7 @@ def setup_ubuntu(forced=False):
     install_spacemacs()
 
     print('Installing neovim....')
-    install_neovim()
+    install_neovim(forced)
 
 def install_chrome():
     f = urllib.urlopen(
@@ -224,8 +224,7 @@ def init_i3(forced=False, ubuntu=False):
     command(
         'gsettings set org.gnome.desktop.background show-desktop-icons false')
 
-    home = os.path.expanduser("~")
-    i3config_dir = os.path.join(home, '.config', 'i3')
+    i3config_dir = os.path.join(HOME, '.config', 'i3')
     i3config_path = os.path.join(i3config_dir, 'config')
     i3config_dotfile = os.path.join(DIR, 'dotfiles', 'i3.config')
 
@@ -245,12 +244,26 @@ def init_i3(forced=False, ubuntu=False):
         command('gsettings set org.gnome.desktop.background show-desktop-icons false')
 
 
-def install_neovim():
+def install_neovim(forced=False):
     # Neovim, relies on python3
     command('sudo add-apt-repository ppa:neovim-ppa/unstable')
     command('sudo apt-get update')
     command('sudo apt-get install neovim')
     command('sudo pip3 install neovim')
+
+    neovimrc_dir = os.path.join(HOME,'.config','nvim')
+    neovimrc_path = os.path.join(neovimrc_dir, 'init.vim')
+    dot_vimrc_path = os.path.join(HOME, '.vimrc')
+
+    if not os.path.isdir(neovimrc_dir):
+        os.makedirs(neovimrc_dir)
+
+    if os.path.isfile(neovimrc_path):
+        if not forced:
+            print("%s already exists!" % neovimrc_path)
+            print()
+            return
+    os.symlink(neovimrc_path, dot_vimrc_path)
 
 def setup_personal_scripts(forced=False):
 
