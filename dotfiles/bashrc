@@ -137,44 +137,18 @@ else
     SU=${BCyan}         # User is normal (well ... most of us are).
 fi
 
-hash git;
-use_git_prompt="no"
-if [ $? -eq 0 ] && [ ! "$use_git_prompt" = "no" ]; then
-	use_git_prompt="yes"
-fi
-
-GitClean="$BGreen"
-GitDirty="$BRed"
-
-export git_prompt='$(git branch &>/dev/null;\
-if [ $? -eq 0 ]; then \
-  echo "$(echo `git status` | grep "nothing to commit" > /dev/null 2>&1; \
-  if [ "$?" -eq "0" ]; then \
-    echo "'$GitClean'"$(__git_ps1 " (%s)"); \
-  else \
-    echo "'$GitDirty'"$(__git_ps1 " {%s}"); \
-  fi) '$BGold'\$ "; \
-else \
-  echo " '$Yellow'\$ "; \
-fi)'
-
-if [ "$use_git_prompt" = "yes" ]; then
-	PS1="$DankGreen \T| $UBPurple\w$Color_Off$BPurple on \h$Color_Off$git_prompt$Color_Off"
-else # No git prompt.
-	if [ "$color_prompt" = "yes" ]; then
-		PS1="$DankGreen\u@\h - \T $Yellow\w \$ $Color_Off"
-	else
-		PS1='\u@\h:\w\$ '
-	fi
-
+if [ "$color_prompt" = "yes" ]; then
+	PS1="$DankGreen\u@\h - \T $BGold\w \$ $Color_Off"
+else
+	PS1='\u@\h:\w\$ '
 fi
 
 export LESSOPEN='|/usr/bin/lesspipe.sh %s 2>&-'
                 # Use this if lesspipe.sh exists.
 
-# -i Ignore case, -w highlight unread, -g highlight first match, -M verbose prompt
-# -M no init termcap, -F quit if only one screen, -P Prompt 
-export LESS='-i -w  -g -e -M -X -F -R -P%t?f%f \
+# -i like vim smartcase, -w highlight unread, -g highlight first match, -M verbose prompt
+# -M no init termcap, -F quit if only one screen, -P Prompt, -n No line numbers
+export LESS='-i -n -w -F -M -X -R -P%t?f%f \
 :stdin .?pb%pb\%:?lbLine %lb:?bbByte %bb:-...'
 
 #tput Color Capabilities:

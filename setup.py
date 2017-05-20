@@ -183,6 +183,9 @@ def setup_ubuntu(forced=False):
     print('Installing Google Chrome...')
     install_chrome()
 
+    print('Installing i3-gaps')
+    install_i3_gaps()
+
     print('Adding i3 config...')
     init_i3(forced, ubuntu=True)
 
@@ -206,6 +209,29 @@ def install_chrome():
         file_.write(deb)
     command('sudo dpkg -i --force-depends %s' % temp)
     command('sudo apt-get install -f -y')
+
+
+def install_i3_gaps():
+    I3_GAPS_UBUNTU_DEPENDS = \
+'''libxcb1-dev libxcb-keysyms1-dev libpango1.0-dev
+libxcb-util0-dev libxcb-icccm4-dev libyajl-dev libstartup-notification0-dev
+libxcb-randr0-dev libev-dev libxcb-cursor-dev libxcb-xinerama0-dev
+libxcb-xkb-dev libxkbcommon-dev libxkbcommon-x11-dev autoconf git automake
+libtool libxcb-xrm0 libxcb-xrm-dev'''
+
+    command('sudo apt-get install -y %s' % I3_GAPS_UBUNTU_DEPENDS)
+    I3_GAPS_SRC = 'https://www.github.com/Airblader/i3'
+    I3_GAPS_SRC_DIR = os.path.join(HOME,'i3-gaps-src')
+    command('git clone "%s" "%s"' % (I3_GAPS_SRC, I3_GAPS_SRC_DIR))
+
+    command('autoreconf --install', cwd=I3_GAPS_SRC_DIR)
+    command('rm -rf build/', cwd=I3_GAPS_SRC_DIR)
+    command('mkdir build', cwd=I3_GAPS_SRC_DIR)
+    build_dir = os.path.join(I3_GAPS_SRC_DIR, 'build')
+    command('../configure --prefix=/usr --sysconfdir=/etc'
+            '--disable-sanitizers', cwd=build_dir)
+    command('make -j', cwd=build_dir)
+    command('sudo make install', cwd=build_dir)
 
 
 def install_base_programs():
