@@ -17,9 +17,10 @@ except NameError:
 DIR = os.path.abspath(os.path.dirname(__file__))
 DEFAULT_PROMPT = "Select an option: "
 DOTFILES = 'dotfiles'
+CONFIGS = 'config'
 DOTFILES_AUTO_LIST = 'FILES'
 LOCAL_BIN_PATH = os.path.expanduser('~/.local/bin')
-SCRIPT_EXPORTS_FILE=DIR+'/config/SCRIPT_EXPORTS'
+SCRIPT_EXPORTS_FILE=DIR+'/%s/SCRIPT_EXPORTS' % CONFIGS
 HOME = os.path.expanduser("~")
 
 
@@ -189,6 +190,9 @@ def setup_ubuntu(forced=False):
     print('Adding i3 config...')
     init_i3(forced, ubuntu=True)
 
+    print('Setting up dconf...')
+    setup_dconf()
+
     print('Setting up dotfiles...')
     setup_dotfiles(forced)
 
@@ -233,6 +237,18 @@ libtool libxcb-xrm0 libxcb-xrm-dev'''
     command('make -j', cwd=build_dir)
     command('sudo make install', cwd=build_dir)
 
+def install_spotify():
+    # 1. Add the Spotify repository signing key to be able to verify downloaded packages
+    command('sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80'
+            '--recv-keys BBEBDCB318AD50EC6865090613B00F1FD2C19886')
+
+    # 2. Add the Spotify repository
+    command('echo deb http://repository.spotify.com stable non-free | sudo tee'
+            '/etc/apt/sources.list.d/spotify.list')
+    # 3. Update list of available packages
+    command('sudo apt-get update')
+    # 4. Install Spotify
+    command('sudo apt-get install spotify-client')
 
 def install_base_programs():
     with open(os.path.join(DIR, 'init', 'ubuntu-programs'), 'r') as programs:
@@ -311,6 +327,9 @@ def setup_personal_scripts(forced=False):
             os.symlink(script_file_path, bin_link_path)
 
 
+def setup_dconf():
+    DCONF_CONFIG = os.path.join(DIR, CONFIGS, 'dconf-config')
+    command('dconf load / < %s' % DCONF_CONFIG)
 
 def update_vim():
     command('git submodule foreach git pull origin master')
