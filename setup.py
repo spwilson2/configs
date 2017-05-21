@@ -217,11 +217,11 @@ def install_chrome():
 
 def install_i3_gaps():
     I3_GAPS_UBUNTU_DEPENDS = \
-'''libxcb1-dev libxcb-keysyms1-dev libpango1.0-dev
-libxcb-util0-dev libxcb-icccm4-dev libyajl-dev libstartup-notification0-dev
-libxcb-randr0-dev libev-dev libxcb-cursor-dev libxcb-xinerama0-dev
-libxcb-xkb-dev libxkbcommon-dev libxkbcommon-x11-dev autoconf git automake
-libtool libxcb-xrm0 libxcb-xrm-dev'''
+'''libxcb1-dev libxcb-keysyms1-dev libpango1.0-dev \
+libxcb-util0-dev libxcb-icccm4-dev libyajl-dev libstartup-notification0-dev \
+libxcb-randr0-dev libev-dev libxcb-cursor-dev libxcb-xinerama0-dev \
+libxcb-xkb-dev libxkbcommon-dev libxkbcommon-x11-dev autoconf git automake \
+libtool libxcb-xrm0 libxcb-xrm-de'''
 
     command('sudo apt-get install -y %s' % I3_GAPS_UBUNTU_DEPENDS)
     I3_GAPS_SRC = 'https://www.github.com/Airblader/i3'
@@ -248,7 +248,7 @@ def install_spotify():
     # 3. Update list of available packages
     command('sudo apt-get update')
     # 4. Install Spotify
-    command('sudo apt-get install spotify-client')
+    command('sudo apt-get install -y spotify-client')
 
 def install_base_programs():
     with open(os.path.join(DIR, 'init', 'ubuntu-programs'), 'r') as programs:
@@ -257,7 +257,7 @@ def install_base_programs():
     print('About to install: %s' % ', '.join(programs))
     print()
     command('sudo apt-get update')
-    command('sudo apt-get dist-upgrade')
+    command('sudo apt-get dist-upgrade -y')
     command('sudo apt-get install -y %s' % ' '.join(programs))
 
 
@@ -290,8 +290,8 @@ def install_neovim(forced=False):
     # Neovim, relies on python3
     command('sudo add-apt-repository ppa:neovim-ppa/unstable')
     command('sudo apt-get update')
-    command('sudo apt-get install neovim')
-    command('sudo pip3 install neovim')
+    command('sudo apt-get install -y neovim')
+    command('sudo pip3 install neovim -qqq')
 
     neovimrc_dir = os.path.join(HOME,'.config','nvim')
     neovimrc_path = os.path.join(neovimrc_dir, 'init.vim')
