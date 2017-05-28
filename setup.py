@@ -221,7 +221,7 @@ def install_i3_gaps():
 libxcb-util0-dev libxcb-icccm4-dev libyajl-dev libstartup-notification0-dev \
 libxcb-randr0-dev libev-dev libxcb-cursor-dev libxcb-xinerama0-dev \
 libxcb-xkb-dev libxkbcommon-dev libxkbcommon-x11-dev autoconf git automake \
-libtool libxcb-xrm0 libxcb-xrm-de'''
+libtool libxcb-xrm0 libxcb-xrm-dev'''
 
     command('sudo apt-get install -y %s' % I3_GAPS_UBUNTU_DEPENDS)
     I3_GAPS_SRC = 'https://www.github.com/Airblader/i3'
