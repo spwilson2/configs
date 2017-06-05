@@ -4,3 +4,6 @@
 [submodule "personal-scripts"]
 	path = personal-scripts
 	url = https://github.com/spwilson2/personal-scripts
+[submodule "emacs"]
+	path = emacs
+	url = https://github.com/spwilson2/emacs-config
