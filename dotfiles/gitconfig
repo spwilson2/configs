@@ -2,7 +2,7 @@
         editor = vim
 	excludesfile = /home/swilson/.gitignore_global
 [user]
-        email = spwilson27@gmail.com
+        email = spwilson2@wisc.edu
         name = Sean Wilson
 [push]
         default = simple
