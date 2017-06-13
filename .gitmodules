@@ -7,3 +7,7 @@
 [submodule "emacs"]
 	path = emacs
 	url = https://github.com/spwilson2/emacs-config
+[submodule "emacs-config"]
+	path = emacs-config
+	url = https://github.com/spwilson2/emacs-config
+	branch = spacemacs

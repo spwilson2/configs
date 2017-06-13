@@ -166,6 +166,9 @@ def install_spacemacs(forced=False):
         command('rm -rf .emacs.d')
     command('git clone https://github.com/syl20bnr/spacemacs %s' % str(emacsd))
 
+    spacemacs_d_path = os.path.join(DIR, 'emacs-config')
+    symlink_file_to_home('.spacemacs.d', spacemacs_d_path, forced)
+
 
 def update_sudo():
     command('sudo python%d %s' %

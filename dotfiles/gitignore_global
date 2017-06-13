@@ -2,4 +2,6 @@ GPATH
 GRTAGS
 GTAGS
 TAGS
+BROWSE
+GSYMS
 .ycm_extra_conf.py
