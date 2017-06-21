@@ -82,6 +82,8 @@ alias uwssh='ssh swilson@cs.wisc.edu'
 alias uplssh='ssh swilson@upl.cs.wisc.edu'
 alias cd..='cd ..'
 
+alias ec='emacsclient -n -a ""'
+
 #alias vim=nvim
 
 # enable color support of ls and also add handy aliases
