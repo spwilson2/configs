@@ -99,5 +99,5 @@ if [ -x /usr/bin/dircolors ]; then
 fi
 
 function ec {
-	emacsclient -a '' -c $1
+	emacsclient -a '' $@
 }

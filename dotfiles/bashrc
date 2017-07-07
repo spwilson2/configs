@@ -214,6 +214,8 @@ shopt -s histappend
 
 export GOPATH=/home/swilson/Projects/Gopath
 export PATH="$HOME/.local/bin:$PATH"
+# Add ccache to path
+export PATH="/usr/lib64/ccache:$PATH"
 # check the window size after each command and, if necessary,
 # update the values of LINES and COLUMNS.
 shopt -s checkwinsize
