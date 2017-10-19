@@ -51,10 +51,6 @@ if [ -n "$force_color_prompt" ]; then
     fi
 fi
 
-
-#  Customize BASH PS1 prompt to show current GIT repository and branch.
-#  by Mike Stewart - http://MediaDoneRight.com
-
 # Reset
 Color_Off="\[\033[0m\]"       # Text Reset
 
@@ -138,7 +134,7 @@ else
 fi
 
 if [ "$color_prompt" = "yes" ]; then
-	PS1="$DankGreen\u@\h - \T $BGold\w \$ $Color_Off"
+	PS1="$DankGreen\u@\h - \T $BGold\w \$$Color_Off "
 else
 	PS1='\u@\h:\w\$ '
 fi
@@ -216,13 +212,14 @@ export GOPATH=/home/swilson/Projects/Gopath
 export PATH="$HOME/.local/bin:$PATH"
 # Add ccache to path
 export PATH="/usr/lib64/ccache:$PATH"
+
+# Add local libraries
+export LD_LIBRARY_PATH="$HOME/.local/lib:$LD_LIBRARY_PATH"
+export LD_LIBRARY_PATH="$HOME/.local/lib64:$LD_LIBRARY_PATH"
+
+# Add local headers
+export CPATH="$HOME/.local/include:$CPATH"
+
 # check the window size after each command and, if necessary,
 # update the values of LINES and COLUMNS.
 shopt -s checkwinsize
-
-
-uw () {
-	sshpass -p "`cat $HOME/.mypass`" "$@"
-}
-
-alias uwssh="uw ssh best-linux.cs.wisc.edu"

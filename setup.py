@@ -138,7 +138,6 @@ def setup_dotfiles(forced=False):
                 print(e)
 
     setup_vim(forced)
-    install_spacemacs(forced)
 
 
 def setup_vim(forced=False):
@@ -149,49 +148,16 @@ def setup_vim(forced=False):
     vimrc_path = os.path.join(vim_path, 'vimrc')
     symlink_file_to_home('vimrc', vimrc_path, forced)
 
-    command('git submodule update --init --recursive')
-    command('vim +PluginInstall +qall')
-    command('python3 %s' % os.path.join(vim_path, 'bundle', 'YouCompleteMe',
-                                       'install.py'))
-
-
-def install_spacemacs(forced=False):
-    emacsd = os.path.join(HOME, '.emacs.d')
-
-    if os.path.isdir(emacsd):
-        if not forced:
-            print("%s already exists!" % emacsd)
-            print()
-            return
-        command('rm -rf .emacs.d')
-    command('git clone https://github.com/syl20bnr/spacemacs %s' % str(emacsd))
-
-    spacemacs_d_path = os.path.join(DIR, 'emacs-config')
-    symlink_file_to_home('.spacemacs.d', spacemacs_d_path, forced)
-
 
 def update_sudo():
     command('sudo python%d %s' %
             (sys.version_info[0], os.path.join(DIR, 'init', 'update-sudo.py')))
 
 
-def setup_ubuntu(forced=False):
+def setup_offline(forced=False):
 
-    print('Setting sudo to NOPASSD...')
+    print('Setting sudo to NOPASSWD...')
     update_sudo()
-
-    print('Installing base programs...')
-    print()
-    install_base_programs()
-
-    print('Installing Google Chrome...')
-    install_chrome()
-
-    print('Installing i3-gaps')
-    install_i3_gaps()
-
-    print('Adding i3 config...')
-    init_i3(forced, ubuntu=True)
 
     print('Setting up dconf...')
     setup_dconf()
@@ -199,116 +165,6 @@ def setup_ubuntu(forced=False):
     print('Setting up dotfiles...')
     setup_dotfiles(forced)
 
-    print('Installing spacemacs....')
-    install_spacemacs()
-
-    print('Installing neovim....')
-    install_neovim(forced)
-
-def install_chrome():
-    f = urllib.urlopen(
-        "https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb"
-    )
-    deb = f.read()
-    _, temp = tempfile.mkstemp()
-    print(temp)
-    with open(temp, 'w') as file_:
-        file_.write(deb)
-    command('sudo dpkg -i --force-depends %s' % temp)
-    command('sudo apt-get install -f -y')
-
-
-def install_i3_gaps():
-    I3_GAPS_UBUNTU_DEPENDS = \
-'''libxcb1-dev libxcb-keysyms1-dev libpango1.0-dev \
-libxcb-util0-dev libxcb-icccm4-dev libyajl-dev libstartup-notification0-dev \
-libxcb-randr0-dev libev-dev libxcb-cursor-dev libxcb-xinerama0-dev \
-libxcb-xkb-dev libxkbcommon-dev libxkbcommon-x11-dev autoconf git automake \
-libtool libxcb-xrm0 libxcb-xrm-dev'''
-
-    command('sudo apt-get install -y %s' % I3_GAPS_UBUNTU_DEPENDS)
-    I3_GAPS_SRC = 'https://www.github.com/Airblader/i3'
-    I3_GAPS_SRC_DIR = os.path.join(HOME,'i3-gaps-src')
-    command('git clone "%s" "%s"' % (I3_GAPS_SRC, I3_GAPS_SRC_DIR))
-
-    command('autoreconf --install', cwd=I3_GAPS_SRC_DIR)
-    command('rm -rf build/', cwd=I3_GAPS_SRC_DIR)
-    command('mkdir build', cwd=I3_GAPS_SRC_DIR)
-    build_dir = os.path.join(I3_GAPS_SRC_DIR, 'build')
-    command('../configure --prefix=/usr --sysconfdir=/etc'
-            '--disable-sanitizers', cwd=build_dir)
-    command('make -j', cwd=build_dir)
-    command('sudo make install', cwd=build_dir)
-
-def install_spotify():
-    # 1. Add the Spotify repository signing key to be able to verify downloaded packages
-    command('sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80'
-            '--recv-keys BBEBDCB318AD50EC6865090613B00F1FD2C19886')
-
-    # 2. Add the Spotify repository
-    command('echo deb http://repository.spotify.com stable non-free | sudo tee'
-            '/etc/apt/sources.list.d/spotify.list')
-    # 3. Update list of available packages
-    command('sudo apt-get update')
-    # 4. Install Spotify
-    command('sudo apt-get install -y spotify-client')
-
-def install_base_programs():
-    with open(os.path.join(DIR, 'init', 'ubuntu-programs'), 'r') as programs:
-        # Split on spaces, and newlines..
-        programs = programs.read().split()
-    print('About to install: %s' % ', '.join(programs))
-    print()
-    command('sudo apt-get update')
-    command('sudo apt-get dist-upgrade -y')
-    command('sudo apt-get install -y %s' % ' '.join(programs))
-
-
-def init_i3(forced=False, ubuntu=False):
-
-    command(
-        'gsettings set org.gnome.desktop.background show-desktop-icons false')
-
-    i3config_dir = os.path.join(HOME, '.config', 'i3')
-    i3config_path = os.path.join(i3config_dir, 'config')
-    i3config_dotfile = os.path.join(DIR, 'dotfiles', 'i3.config')
-
-    if not os.path.isdir(i3config_dir):
-        os.makedirs(i3config_dir)
-
-    if os.path.isfile(i3config_path):
-        if not forced:
-            print("%s already exists!" % i3config_path)
-            print()
-            return
-        os.remove(i3config_path)
-    os.symlink(i3config_dotfile, i3config_path)
-
-    if ubuntu:
-        # Turn off nautilus full screen..
-        command('gsettings set org.gnome.desktop.background show-desktop-icons false')
-
-
-def install_neovim(forced=False):
-    # Neovim, relies on python3
-    command('sudo add-apt-repository ppa:neovim-ppa/unstable')
-    command('sudo apt-get update')
-    command('sudo apt-get install -y neovim')
-    command('sudo pip3 install neovim -qqq')
-
-    neovimrc_dir = os.path.join(HOME,'.config','nvim')
-    neovimrc_path = os.path.join(neovimrc_dir, 'init.vim')
-    dot_vimrc_path = os.path.join(HOME, '.vimrc')
-
-    if not os.path.isdir(neovimrc_dir):
-        os.makedirs(neovimrc_dir)
-
-    if os.path.isfile(neovimrc_path):
-        if not forced:
-            print("%s already exists!" % neovimrc_path)
-            print()
-            return
-    os.symlink(neovimrc_path, dot_vimrc_path)
 
 def setup_personal_scripts(forced=False):
 
@@ -334,28 +190,23 @@ def setup_dconf():
     DCONF_CONFIG = os.path.join(DIR, CONFIGS, 'dconf-config')
     command('dconf load / < %s' % DCONF_CONFIG)
 
-def update_vim():
-    command('git submodule foreach git pull origin master')
-
 def main():
     # Option Menu:
     main_menu = Menu(name='main menu')
 
-    main_menu.add_option('Setup Ubuntu', 1, setup_ubuntu)
+    main_menu.add_option('Setup All', 1, setup_offline)
     main_menu.add_option('Setup Dotfiles', 2, setup_dotfiles)
-    main_menu.add_option('Update Vim Config', 3, update_vim)
-    main_menu.add_option('Add My Scripts to PATH', 4, setup_personal_scripts)
+    main_menu.add_option('Add My Scripts to PATH', 3, setup_personal_scripts)
 
     main_menu.add_space()
 
+    forced_setup_offline = lambda: setup_offline(forced=True)
     forced_setup_dotfiles = lambda: setup_dotfiles(forced=True)
-    forced_setup_ubuntu = lambda: setup_ubuntu(forced=True)
     forced_setup_personal_scripts = lambda: setup_personal_scripts(forced=True)
 
-    main_menu.add_option('Setup Ubuntu (forced)', '1f', forced_setup_ubuntu)
-    main_menu.add_option('Setup Dotfiles (forced)', '2f',
-                         forced_setup_dotfiles)
-    main_menu.add_option('Add My Scripts to PATH', '4f', forced_setup_personal_scripts)
+    main_menu.add_option('Setup offline (forced)', '1f', forced_setup_offline)
+    main_menu.add_option('Setup Dotfiles (forced)', '2f', forced_setup_dotfiles)
+    main_menu.add_option('Add My Scripts to PATH (forced)', '3f', forced_setup_personal_scripts)
 
     main_menu.prompt()
 
