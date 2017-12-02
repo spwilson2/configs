@@ -184,26 +184,11 @@ def setup_ubuntu(forced=False):
     print()
     install_base_programs()
 
-    print('Installing Google Chrome...')
-    install_chrome()
-
-    print('Installing i3-gaps')
-    install_i3_gaps()
-
-    print('Adding i3 config...')
-    init_i3(forced, ubuntu=True)
-
     print('Setting up dconf...')
     setup_dconf()
 
     print('Setting up dotfiles...')
     setup_dotfiles(forced)
-
-    print('Installing spacemacs....')
-    install_spacemacs()
-
-    print('Installing neovim....')
-    install_neovim(forced)
 
 def install_chrome():
     f = urllib.urlopen(
