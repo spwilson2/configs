@@ -138,6 +138,7 @@ def setup_dotfiles(forced=False):
                 print(e)
 
     setup_vim(forced)
+    init_i3(forced)
     install_spacemacs(forced)
 
 
