@@ -1,4 +1,8 @@
-function ask()          # See 'killps' for example of use.
+#!/bin/bash
+
+
+# See 'killps' for example of use.
+function ask()
 {
     echo -n "$@" '[y/n] ' ; read ans
     case "$ans" in
@@ -7,7 +11,8 @@ function ask()          # See 'killps' for example of use.
     esac
 }
 
-function killps()   # kill by process name
+# kill by process name
+function killps()
 {
     local pid pname sig="-TERM"   # default signal
     if [ "$#" -lt 1 ] || [ "$#" -gt 2 ]; then
@@ -22,10 +27,6 @@ function killps()   # kill by process name
             then kill $sig $pid
         fi
     done
-}
-
-function ytdl {
-  youtube-dl --extract-audio --audio-format mp3 --yes-playlist --ignore-errors -q "$1" 
 }
 
 # Print colors to the terminal.
@@ -45,46 +46,36 @@ function colors() {
     _color {232..255}
 
 }
+
+# Path/Utility functions
 unixpath2dos () {
-    echo "$1" | sed "s/\//\\\/g"
+  echo "$1" | sed "s/\//\\\/g"
 }
-
 dospath2unix () {
-sed -e 's~\\~/~g' -e 's~J:~/usr~' <<< "$1"
+  sed -e 's~\\~/~g' -e 's~J:~/usr~' <<< "$1"
+}
+path() {
+  echo $PATH | tr : "\n"
+}
+catline() {
+  head -n $1 $2 | tail -n 1
 }
 
-svn_clean () {
-svn status | grep ^\? | cut -c9- | xargs -d \\n rm -r 
+# Log/productivity functions
+function log() {
+  v "" --forward -c Log
 }
 
-alias logs-gather='/home/vagrant/own/ownscripts_stable/logs-gather.py'
-
+# Diff svn from the branch point
 svn_diff_cp () {
- svn diff -r `svn log --stop-on-copy -q | tail -n2 | head -n1 | grep -Eo 'r[0-9]+'`:HEAD
+  svn diff -r `svn log --stop-on-copy -q | tail -n2 | head -n1 | grep -Eo 'r[0-9]+'`:HEAD
 }
-
-function get_github_key {
-  cat ~/.github_key
+svn_clean () {
+  svn status | grep ^\? | cut -c9- | xargs -d \\n rm -r
 }
-
-function github_init  {
-  curl -u "spwilson2:$(get_github_key)" https://api.github.com/user/repos -d\
-  '{"name":"'"$1"'"}'
-}
-
-# Some more ls aliases
-alias ll='ls -l'
-alias la='ls -A'
-alias l='ls'
-alias sl='ls'
-
-alias uwssh='ssh swilson@cs.wisc.edu'
-alias uplssh='ssh swilson@upl.cs.wisc.edu'
-alias cd..='cd ..'
-
-alias ec='emacsclient -n -a ""'
-
-#alias vim=nvim
+alias svnst="svn status -q"
+alias svnr="svn resolve --accept working"
+alias sup="svn up --non-interactive; echo -e \"\\\\a\"; sleep .25; echo -e \"\\\\a\""
 
 # enable color support of ls and also add handy aliases
 if [ -x /usr/bin/dircolors ]; then
@@ -98,6 +89,103 @@ if [ -x /usr/bin/dircolors ]; then
     alias egrep='egrep --color=auto'
 fi
 
-function ec {
-	emacsclient -a '' $@
+alias ll='ls -l'
+alias la='ls -la'
+
+alias ag="ag -U"
+alias grep="grep --exclude-dir .svn"
+
+# Typo aliases
+alias cd..='cd ..'
+alias l='ls'
+alias sl='ls'
+
+
+# Green Hills
+alias locate1='locate -n1'
+alias unreserve='/home/apvalmart/rtos_val/tools/support/bfunreserve'
+alias cdi="cd_issue"
+alias cdw="cd /home/landshark/sean.wilson"
+alias cdb="cd /home/landshark/sean.wilson/git/working"
+# alias gbas="sup && ./builds-ep/build_all.sh"
+# alias svn16="/archive/subversion/1.6/subversion-1.6.9/subversion/svn/svn"
+# alias svn17="/archive/subversion/1.7/subversion-1.7.17/subversion/svn/svn"
+# other aliases
+alias diffview='meld'
+alias dv="diffview"
+# alias clgrep='clgrep --rtos'
+# alias unigui='${RTOS_DIR}/rtos_val/shared/unival/unigui.py'
+# # alias multi='multi -sr_private' # scottr this fails to open BSP directories
+# alias mpm='${TOOLS_DIR}/mprojmgr'
+# alias ghsgcc='${TOOLS_DIR}/gcc'
+# alias mhist="me -historybrowser"
+# alias gba="./builds-ep/build_all.sh"
+# alias ba="./builds-ep/build_all.sh"
+alias printsource="enscript -C -DDuplex:true -DCollate:true -G2rE -f Courier@6 --margins=20:20:15:15"
+#alias ivncviewer="/home/integrity/rtos_val/bin/vncviewer/linux86/vncviewer"
+
+alias ct="ctags -R --exclude=\"INTEGRITY-docs\" --exclude=\"manuals\" --exclude=\"python\""
+alias psirun="/home/apvalmart/rtos_val/psival/system/psirun.py"
+
+function _format_commit_message() {
+  svn log -c $1 http://rtosvc |\
+    sed -e ':a;N;$!ba;s/Change reviewed by (user ID):.*//' |\
+    sed -e ':a;N;$!ba;s/Reason for commit policy violation:.*//' |\
+    sed -e 's/^/> /'
+}
+
+function format_commit_messages {
+  for cid in $@ ; do
+    _format_commit_message $cid
+  done
+}
+
+function create_trunk_issue() {
+  pushd "$BRANCH_DIR"
+    mkdir "$1"
+    cd "$1"
+      mkdir patches
+
+      svn co http://rtosvc/trunk/rtos trunk
+      cd trunk
+        ./setup
+        ./products/integrity_additions_bto.sh
+}
+
+function co_trunk() {
+  svn co http://rtosvc/trunk/rtos trunk
+  cd trunk
+    ./setup
+    ./products/integrity_additions_bto.sh
+}
+
+function create_issue() {
+  pushd "$BRANCH_DIR"
+    mkdir "$1"
+    cd "$1"
+      mkdir patches
+
+      svn co http://rtosvc/trunk/rtos trunk
+      cd trunk
+        ./setup
+        ./products/integrity_additions_bto.sh
+      cd ..
+
+      svn co http://rtosvc/branches/ap/rtos-i11.7/rtos i11.7
+      cd i11.7
+        ./setup
+        ./products/integrity_additions_multivisor.sh
+      cd ..
+
+      svn co http://rtosvc/branches/ap/trunk/rtos aptrunk
+      cd aptrunk
+        ./setup
+        ./products/integrity_additions_multivisor.sh
+      cd ..
+    cd .. # Issue dir
+  popd # BRANCH_DIR
+}
+
+function cd_issue() {
+  cd "$BRANCH_DIR/$1"
 }
