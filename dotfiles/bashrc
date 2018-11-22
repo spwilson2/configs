@@ -62,7 +62,6 @@ else
   SU="$FGRN"
 fi
 
-echo $color_prompt
 if [ "$color_prompt" = "yes" ]; then
   PS1="$BLD$SU\u$FYEL@$FRED\h$RST $BLD$FBLU\w$RST \n$ "
   PS2="$BLD$FGRN> $RST"
