@@ -3,6 +3,7 @@
 # TODO Support other branches
 # TODO Support updating all
 # TODO Support subrepos
+# TODO Add setup script functionality
 
 import configparser
 import os

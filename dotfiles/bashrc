@@ -116,7 +116,7 @@ else
   export EDITOR=${HOME}/.editor
 fi
 
-source ~/projects/productivity/git-svn-scripts.sh
+#source ~/projects/productivity/git-svn-scripts.sh
 
 # GHS Configuration
 # Host defines.....
