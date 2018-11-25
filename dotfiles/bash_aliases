@@ -99,6 +99,7 @@ alias grep="grep --exclude-dir .svn"
 alias cd..='cd ..'
 alias l='ls'
 alias sl='ls'
+alias v="$EDITOR -n"
 
 
 # Green Hills
