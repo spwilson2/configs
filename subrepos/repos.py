@@ -18,7 +18,7 @@ INI_FILE = os.path.join(SUBREPOS_DIR, 'repos.ini')
 class Options:
     PATH = 'path'
 
-if __name__ == '__main__':
+def setup():
     cf_parser = configparser.ConfigParser()
     cf_parser.read(INI_FILE)
 
@@ -37,3 +37,5 @@ if __name__ == '__main__':
         print(call)
         subprocess.call(('git','clone', remote, dest))
 
+if __name__ == '__main__':
+    setup()

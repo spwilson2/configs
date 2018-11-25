@@ -2,11 +2,14 @@
 # TODO Python2 support
 
 import argparse
+import configparser
 import pwd
 import os
 import subprocess
 import shutil
-import configparser
+import sys
+
+import subrepos.repos
 
 # TODO Create groupings of setup components:
 # dotfiles
@@ -32,7 +35,6 @@ class Options():
         self._convert_args(parser.parse_args())
 
 class System:
-
     @staticmethod
     def _set_nopasswd_sudo(username):
         SUDOER_ENTRY = '{} ALL=(ALL:ALL) NOPASSWD:ALL\n'.format(username)
@@ -62,7 +64,7 @@ class System:
         run('sudo python3 -c "%s"' % script)
 
 class Ubuntu:
-    def setup(self):
+    def setup(self, force):
         System.set_nopasswd_sudo()
         self.install_spotify()
 
@@ -79,6 +81,28 @@ class Ubuntu:
         # 4. Install Spotify
         run('sudo apt-get install -y spotify-client')
 
+class User:
+    def setup(self, force):
+        self.symlink_dotfiles(force)
+        self.setup_subrepos()
+
+    @staticmethod
+    def setup_subrepos():
+        subrepos.repos.setup()
+
+    @staticmethod
+    def symlink_dotfiles(force):
+        cp = configparser.ConfigParser()
+        dotfiles_dir = os.path.join(THIS_DIR, 'dotfiles')
+        cp.read(os.path.join(dotfiles_dir, 'dotfiles.ini'))
+
+        # TODO Handle destination option
+        for file_, options in cp.items():
+            if file_ == 'DEFAULT':
+                continue
+            if not options:
+                symlink(os.path.join(dotfiles_dir, file_),
+                        os.path.join(HOME, '.' + file_), force)
 
 def run(program, cwd=THIS_DIR):
     ''' Run a shell command, default directory is the DIR of this script.'''
@@ -98,24 +122,11 @@ def symlink(src, dst, force=False):
         os.remove(dst)
         os.symlink(src, dst)
 
-def symlink_dotfiles(force):
-    cp = configparser.ConfigParser()
-    dotfiles_dir = os.path.join(THIS_DIR, 'dotfiles')
-    cp.read(os.path.join(dotfiles_dir, 'dotfiles.ini'))
-
-    # TODO Handle destination option
-    for file_, options in cp.items():
-        if file_ == 'DEFAULT':
-            continue
-        if not options:
-            symlink(os.path.join(dotfiles_dir, file_),
-                    os.path.join(HOME, '.' + file_), force)
-
 def main():
     options = Options()
     options.parse_options()
 
-    symlink_dotfiles(options.force)
+    User().setup(options.force)
     if options.ubuntu:
         Ubuntu().setup()
 
