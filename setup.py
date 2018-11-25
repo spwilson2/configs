@@ -2,6 +2,7 @@
 # TODO Python2 support
 
 import argparse
+import pwd
 import os
 import subprocess
 import shutil
@@ -9,28 +10,63 @@ import configparser
 
 # TODO Create groupings of setup components:
 # dotfiles
-# sudo
 # additional programs
 # local additinal programs
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 HOME = os.path.expanduser("~")
+USERNAME = pwd.getpwuid(os.getuid())[0]
 
 class Options():
     def _convert_args(self, args):
         self.force = bool(args.force)
+        self.ubuntu = bool(args.ubuntu)
 
     def parse_options(self):
         parser = argparse.ArgumentParser()
+        # Add ubuntu option
+        parser.add_argument('--ubuntu', default=False, action='store_true',
+                help='Run ubuntu specific setup options')
         parser.add_argument('--force', '-f', default=False, action='store_true',
                 help='Overwrite exiting folders and files without prompting')
         self._convert_args(parser.parse_args())
 
+class System:
+
+    @staticmethod
+    def _set_nopasswd_sudo():
+        SUDOER_ENTRY = '{} ALL=(ALL:ALL) NOPASSWD:ALL'.format(USERNAME)
+        sudoer_file = '/etc/sudoers'
+        # Check if we are already in sudoers
+        with open(sudoer_file, 'r') as sudoers:
+            for line in sudoers.readlines():
+                if line.strip() == SUDOER_ENTRY:
+                    print("Already in sudoer's file!")
+                    return
+        with open(sudoer_file, 'a') as sudoers:
+            sudoers.write(SUDOER_ENTRY)
+
+    @staticmethod
+    def module_name():
+        if __name__ == '__main__':
+            return 'setup'
+        else:
+            raise NotImplemented
+
+
+    @staticmethod
+    def set_nopasswd_sudo():
+        # TODO Python2/3
+        script = ('from %s import System; System._set_nopasswd_sudo()'
+            % System.module_name())
+        run('sudo python3 -c "%s"' % script)
 
 class Ubuntu:
     def setup(self):
+        System.set_nopasswd_sudo()
         self.install_spotify()
 
+    @staticmethod
     def install_spotify():
         # 1. Add the Spotify repository signing key to be able to verify downloaded packages
         run('sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80'
@@ -78,7 +114,10 @@ def symlink_dotfiles(force):
 def main():
     options = Options()
     options.parse_options()
+
     symlink_dotfiles(options.force)
+    if options.ubuntu:
+        Ubuntu().setup()
 
 if __name__ == '__main__':
     main()
