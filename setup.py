@@ -34,8 +34,8 @@ class Options():
 class System:
 
     @staticmethod
-    def _set_nopasswd_sudo():
-        SUDOER_ENTRY = '{} ALL=(ALL:ALL) NOPASSWD:ALL'.format(USERNAME)
+    def _set_nopasswd_sudo(username):
+        SUDOER_ENTRY = '{} ALL=(ALL:ALL) NOPASSWD:ALL\n'.format(username)
         sudoer_file = '/etc/sudoers'
         # Check if we are already in sudoers
         with open(sudoer_file, 'r') as sudoers:
@@ -57,8 +57,8 @@ class System:
     @staticmethod
     def set_nopasswd_sudo():
         # TODO Python2/3
-        script = ('from %s import System; System._set_nopasswd_sudo()'
-            % System.module_name())
+        script = ('from %s import System; System._set_nopasswd_sudo(\'%s\')'
+            % (System.module_name(), USERNAME))
         run('sudo python3 -c "%s"' % script)
 
 class Ubuntu:
