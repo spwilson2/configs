@@ -9,8 +9,6 @@ import subprocess
 import shutil
 import sys
 
-import subrepos.repos
-
 # TODO Create groupings of setup components:
 # dotfiles
 # additional programs
@@ -97,7 +95,7 @@ class User:
 
     @staticmethod
     def setup_subrepos():
-        subrepos.repos.setup()
+        Subrepos.setup()
 
     @staticmethod
     def symlink_dotfiles(force):
@@ -112,6 +110,39 @@ class User:
             if not options:
                 symlink(os.path.join(dotfiles_dir, file_),
                         os.path.join(HOME, '.' + file_), force)
+
+class Subrepos:
+    SUBREPOS_DIR = os.path.join(THIS_DIR, 'subrepos')
+    DEFAULT_REMOTE = 'https://github.com/'
+    INI_FILE = os.path.join(SUBREPOS_DIR, 'repos.ini')
+    # TODO Support other remotes than github
+    # TODO Support other branches
+    # TODO Support updating all
+    # TODO Support subrepos
+
+    class Options:
+        '''Options available in the subrepos .ini file.'''
+        PATH = 'path'
+
+    @classmethod
+    def _setup_subrepo(cls):
+        pass
+
+    @classmethod
+    def setup(cls):
+        cf_parser = configparser.ConfigParser()
+        cf_parser.read(cls.INI_FILE)
+        for subrepo, options in cf_parser.items():
+            # Ignore the default namespace
+            if subrepo == 'DEFAULT':
+                continue
+            dest = options.get(cls.Options.PATH, subrepo)
+            dest = os.path.join(cls.SUBREPOS_DIR, dest)
+            remote = cls.DEFAULT_REMOTE + options.get('remote')
+
+            call = ('git','clone', remote, dest)
+            print(call)
+            subprocess.call(('git','clone', remote, dest))
 
 def run(program, cwd=THIS_DIR):
     ''' Run a shell command, default directory is the DIR of this script.'''
