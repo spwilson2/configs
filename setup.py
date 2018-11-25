@@ -123,10 +123,7 @@ class Subrepos:
     class Options:
         '''Options available in the subrepos .ini file.'''
         PATH = 'path'
-
-    @classmethod
-    def _setup_subrepo(cls):
-        pass
+        SETUP = 'setup'
 
     @classmethod
     def setup(cls):
@@ -143,6 +140,11 @@ class Subrepos:
             call = ('git','clone', remote, dest)
             print(call)
             subprocess.call(('git','clone', remote, dest))
+
+            setup_script = options.get(cls.Options.SETUP)
+            if setup_script:
+                print('Running setup script.')
+                run(os.path.join(dest, setup_script))
 
 def run(program, cwd=THIS_DIR):
     ''' Run a shell command, default directory is the DIR of this script.'''
