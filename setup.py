@@ -89,6 +89,9 @@ class Ubuntu:
         run('sudo apt-get install -y spotify-client')
 
 class User:
+    class Options:
+        PATH = 'path'
+
     def setup(self, force):
         self.symlink_dotfiles(force)
         self.setup_subrepos()
@@ -107,9 +110,11 @@ class User:
         for file_, options in cp.items():
             if file_ == 'DEFAULT':
                 continue
-            if not options:
-                symlink(os.path.join(dotfiles_dir, file_),
-                        os.path.join(HOME, '.' + file_), force)
+
+            dst = os.path.join('~', '.' + file_)
+            dst = options.get(User.Options.PATH, dst)
+            dst = os.path.expanduser(dst)
+            symlink(os.path.join(dotfiles_dir, file_), dst, force)
 
 class Subrepos:
     SUBREPOS_DIR = os.path.join(THIS_DIR, 'subrepos')
