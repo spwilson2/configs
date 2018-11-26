@@ -161,32 +161,87 @@ function co_trunk() {
 }
 
 function create_issue() {
-  pushd "$BRANCH_DIR"
+  cd "$BRANCH_DIR"
     mkdir "$1"
     cd "$1"
-      mkdir patches
 
-      svn co http://rtosvc/trunk/rtos trunk
-      cd trunk
-        ./setup
-        ./products/integrity_additions_bto.sh
-      cd ..
-
-      svn co http://rtosvc/branches/ap/rtos-i11.7/rtos i11.7
-      cd i11.7
-        ./setup
-        ./products/integrity_additions_multivisor.sh
-      cd ..
-
-      svn co http://rtosvc/branches/ap/trunk/rtos aptrunk
-      cd aptrunk
-        ./setup
-        ./products/integrity_additions_multivisor.sh
-      cd ..
-    cd .. # Issue dir
-  popd # BRANCH_DIR
+    git-clone-trunk trunk
+    git-clone-aptrunk aptrunk
+    git-clone-i117 i117
 }
 
 function cd_issue() {
   cd "$BRANCH_DIR/$1"
+}
+
+
+function _git-clone() {
+  $(
+    if [ $# -ne 2 ] ; then
+      echo "$0 <source-repo> <new-repo>"
+      exit 1
+    fi
+
+    GIT_TRUNK="$1"
+    NEW_REPO="$2"
+
+    SVN_TRUNK="`cd $GIT_TRUNK && svn info --show-item url`"
+    REVISION="`git -C "$GIT_TRUNK" svn log --limit 1 | head -n 2| ag "r\d+" -o`"
+
+    git clone "$GIT_TRUNK" "$NEW_REPO"
+    cd "$NEW_REPO"
+    git fetch origin git-svn:refs/remotes/git-svn
+    cp -r "$GIT_TRUNK/.svn" .
+    svn revert -q -R .
+    svn update -q -r "$REVISION"
+    git checkout --force
+
+    git svn init "$SVN_TRUNK"
+    git svn fetch
+  )
+}
+
+GIT_TRUNK=/home/landshark/sean.wilson/git/origin/trunk
+GIT_APTRUNK=/home/landshark/sean.wilson/git/origin/aptrunk
+GIT_I117=/home/landshark/sean.wilson/git/origin/i11.7
+
+function git-svn-externals() {
+  svn st | ag  "^(    )?X(.*)" | sed  -r 's/^( )*X( )*(.*)/\3/'
+}
+
+function git-svn-generate-ignore {
+  _TMP_GIT_IGNORE="`mktemp`"
+
+  echo "Generating externals list"
+  git-svn-externals > "$_TMP_GIT_IGNORE"
+  echo "Appending manual ignores"
+  cat .gitignore-manual >> "$_TMP_GIT_IGNORE"
+  echo "Generating and appending svn ignore list"
+  git svn show-ignore >> "$_TMP_GIT_IGNORE"
+  echo "Sorting entries"
+  sort "$_TMP_GIT_IGNORE" | uniq > .gitignore
+  rm "$_TMP_GIT_IGNORE"
+}
+
+function git-clone-aptrunk() {
+  _git-clone "$GIT_APTRUNK" "$@" && \
+  cd "$@" && \
+  ./setup && \
+  ./products/integrity_additions_multivisor.sh
+}
+function git-clone-i117() {
+  _git-clone "$GIT_I117" "$@" && \
+  cd "$@" && \
+  ./setup && \
+  ./products/integrity_additions_multivisor.sh
+}
+function git-clone-trunk() {
+  _git-clone "$GIT_TRUNK" "$@" && \
+  cd "$@" && \
+  ./setup && \
+  ./products/integrity_additions_bto.sh
+}
+function git-svn-update() {
+  REV="`git svn log --limit 1 | head -n 2| ag "r\d+" -o`"
+  svn revert -q -R . && svn update -r "$REV" --force && git checkout --force
 }

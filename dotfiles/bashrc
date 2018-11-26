@@ -116,8 +116,6 @@ else
   export EDITOR=${HOME}/.editor
 fi
 
-source ~/.dotfiles/subrepos/productivity/git-svn-scripts.sh
-
 # GHS Configuration
 # Host defines.....
 export GHS_LMHOST="#ghslm1,ghslm2,ghslm3"
