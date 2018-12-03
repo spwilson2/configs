@@ -107,7 +107,7 @@ alias locate1='locate -n1'
 alias unreserve='/home/apvalmart/rtos_val/tools/support/bfunreserve'
 alias cdi="cd_issue"
 alias cdw="cd /home/landshark/sean.wilson"
-alias cdb="cd /home/landshark/sean.wilson/git/working"
+alias cdb="cd /home/landshark/sean.wilson/git/origin"
 # alias gbas="sup && ./builds-ep/build_all.sh"
 # alias svn16="/archive/subversion/1.6/subversion-1.6.9/subversion/svn/svn"
 # alias svn17="/archive/subversion/1.7/subversion-1.7.17/subversion/svn/svn"
@@ -129,9 +129,10 @@ alias ct="ctags -R --exclude=\"INTEGRITY-docs\" --exclude=\"manuals\" --exclude=
 alias psirun="/home/apvalmart/rtos_val/psival/system/psirun.py"
 
 function _format_commit_message() {
-  svn log -c $1 http://rtosvc |\
-    sed -e ':a;N;$!ba;s/Change reviewed by (user ID):.*//' |\
-    sed -e ':a;N;$!ba;s/Reason for commit policy violation:.*//' |\
+  svn log -c "$@" http://rtosvc |\
+    sed -e 's/Change reviewed by (user ID):.*//' |\
+    sed -e 's/Reason for commit policy violation:.*//' |\
+    perl -00 -pe 1|\
     sed -e 's/^/> /'
 }
 
@@ -144,9 +145,7 @@ function format_commit_messages {
 function create_trunk_issue() {
   pushd "$BRANCH_DIR"
     mkdir "$1"
-    cd "$1"
-      mkdir patches
-
+    pushd "$1"
       svn co http://rtosvc/trunk/rtos trunk
       cd trunk
         ./setup
@@ -161,13 +160,23 @@ function co_trunk() {
 }
 
 function create_issue() {
-  cd "$BRANCH_DIR"
+  pushd "$BRANCH_DIR"
     mkdir "$1"
-    cd "$1"
 
-    git-clone-trunk trunk
-    git-clone-aptrunk aptrunk
-    git-clone-i117 i117
+    pushd "$1"
+      echo "Cloning trunk"
+      git-clone-trunk trunk > /dev/null
+    popd
+
+    pushd "$1"
+      echo "Cloning aptrunk"
+      git-clone-aptrunk aptrunk > /dev/null
+    popd
+
+    pushd "$1"
+      echo "Cloning i117"
+      git-clone-i117 i117 > /dev/null
+    popd
 }
 
 function cd_issue() {
@@ -176,27 +185,27 @@ function cd_issue() {
 
 
 function _git-clone() {
-  $(
+  _=$(
     if [ $# -ne 2 ] ; then
       echo "$0 <source-repo> <new-repo>"
       exit 1
     fi
 
-    GIT_TRUNK="$1"
-    NEW_REPO="$2"
+    _GIT_TRUNK="$1"
+    _NEW_REPO="$2"
 
-    SVN_TRUNK="`cd $GIT_TRUNK && svn info --show-item url`"
-    REVISION="`git -C "$GIT_TRUNK" svn log --limit 1 | head -n 2| ag "r\d+" -o`"
+    _SVN_TRUNK="`cd $_GIT_TRUNK && svn info --show-item url`"
+    _REVISION="`git -C "$_GIT_TRUNK" svn log --limit 1 | head -n 2| ag "r\d+" -o`"
 
-    git clone "$GIT_TRUNK" "$NEW_REPO"
-    cd "$NEW_REPO"
+    git clone "$_GIT_TRUNK" "$_NEW_REPO"
+    cd "$_NEW_REPO"
     git fetch origin git-svn:refs/remotes/git-svn
-    cp -r "$GIT_TRUNK/.svn" .
+    cp -r "$_GIT_TRUNK/.svn" .
     svn revert -q -R .
-    svn update -q -r "$REVISION"
-    git checkout --force
+    svn update --force -q -r "$_REVISION"
+    git checkout --force master --
 
-    git svn init "$SVN_TRUNK"
+    git svn init "$_SVN_TRUNK"
     git svn fetch
   )
 }
@@ -243,5 +252,5 @@ function git-clone-trunk() {
 }
 function git-svn-update() {
   REV="`git svn log --limit 1 | head -n 2| ag "r\d+" -o`"
-  svn revert -q -R . && svn update -r "$REV" --force && git checkout --force
+  svn revert -q -R . && svn update -q -r "$REV" --force && git checkout --force
 }

@@ -138,3 +138,5 @@ export PYTHONPATH
 export PATH
 
 [ -f ~/.bash_aliases ] && source ~/.bash_aliases
+
+[ -f ~/.fzf.bash ] && source ~/.fzf.bash
