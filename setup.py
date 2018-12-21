@@ -5,6 +5,7 @@ import argparse
 import configparser
 import pwd
 import os
+import re
 import subprocess
 import shutil
 import sys
@@ -122,6 +123,20 @@ class Subrepos:
         SETUP = 'setup'
 
     @classmethod
+    def remote_full_path(cls, remote_stub):
+        url_chars = '[a-zA-Z0-9._-]'
+        # Search for remote with protocol specified. Assume full path.
+        match = re.search(r'\w*://%s*' % url_chars, remote_stub)
+        if match:
+            return remote_stub
+
+        match = re.search(r'%s*/%s*' % (url_chars, url_chars), remote_stub)
+        if match:
+            return cls.DEFAULT_REMOTE + remote_stub
+        raise ValueError('')
+
+
+    @classmethod
     def setup(cls):
         cf_parser = configparser.ConfigParser()
         cf_parser.read(cls.INI_FILE)
@@ -131,7 +146,12 @@ class Subrepos:
                 continue
             dest = options.get(cls.Options.PATH, subrepo)
             dest = os.path.join(cls.SUBREPOS_DIR, dest)
-            remote = cls.DEFAULT_REMOTE + options.get('remote')
+            try:
+                remote_stub = options.get('remote')
+                remote = cls.remote_full_path(remote_stub)
+            except ValueError:
+                print('Unable to resolve remote path from %s' % remote_stub)
+                continue
 
             call = ('git','clone', remote, dest)
             print(call)
