@@ -1,6 +1,6 @@
 [core]
         #editor = vim
-	excludesfile = /home/swilson/.gitignore_global
+	excludesfile = /home/eng/users/sean.wilson/.gitignore_global
 [user]
         email = sean.wilson@ghs.com
         name = Sean Wilson
@@ -20,7 +20,7 @@
 [credential]
 	helper = store
 [http]
-	cookiefile = /home/swilson/.gitcookies
+	cookiefile = /home/eng/users/sean.wilson/.gitcookies
 
 # Recommend using --dir-diff 
 [diff]
