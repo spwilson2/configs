@@ -92,7 +92,8 @@ fi
 alias ll='ls -l'
 alias la='ls -la'
 
-alias ag="ag -U"
+alias ag="ag -U --ignore cscope.out --ignore tags --ignore cscope.po.out --ignore cscope.in.out"
+#alias grep="grep --exclude-dir .svn"
 alias grep="grep --exclude-dir .svn"
 
 # Typo aliases
@@ -125,7 +126,15 @@ alias dv="diffview"
 alias printsource="enscript -C -DDuplex:true -DCollate:true -G2rE -f Courier@6 --margins=20:20:15:15"
 #alias ivncviewer="/home/integrity/rtos_val/bin/vncviewer/linux86/vncviewer"
 
-alias ct="ctags -R --exclude=\"INTEGRITY-docs\" --exclude=\"manuals\" --exclude=\"python\""
+function ct() {
+  ctags -R --exclude="INTEGRITY-docs" --exclude="manuals" --exclude="python" &
+  _pids[0]=$!
+  cscope -R -q -b &
+  _pids[1]=$!
+  wait ${_pids[0]}
+  wait ${_pids[1]}
+}
+
 alias psirun="/home/apvalmart/rtos_val/psival/system/psirun.py"
 
 function _format_commit_message() {
