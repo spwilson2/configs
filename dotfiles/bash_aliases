@@ -1,5 +1,8 @@
 #!/bin/bash
 
+function cdd() {
+  cd `dirname "$@"`
+}
 
 # See 'killps' for example of use.
 function ask()
@@ -193,7 +196,7 @@ function cd_issue() {
 }
 
 
-function _git-clone() {
+function git-svn-clone() {
   _=$(
     if [ $# -ne 2 ] ; then
       echo "$0 <source-repo> <new-repo>"
@@ -242,24 +245,31 @@ function git-svn-generate-ignore {
 }
 
 function git-clone-aptrunk() {
-  _git-clone "$GIT_APTRUNK" "$@" && \
+  git-svn-clone "$GIT_APTRUNK" "$@" && \
   cd "$@" && \
   ./setup && \
   ./products/integrity_additions_multivisor.sh
 }
 function git-clone-i117() {
-  _git-clone "$GIT_I117" "$@" && \
+  git-svn-clone "$GIT_I117" "$@" && \
   cd "$@" && \
   ./setup && \
   ./products/integrity_additions_multivisor.sh
 }
 function git-clone-trunk() {
-  _git-clone "$GIT_TRUNK" "$@" && \
+  git-svn-clone "$GIT_TRUNK" "$@" && \
   cd "$@" && \
   ./setup && \
   ./products/integrity_additions_bto.sh
 }
+
 function git-svn-update() {
   REV="`git svn log --limit 1 | head -n 2| ag "r\d+" -o`"
   svn revert -q -R . && svn update -q -r "$REV" --force && git checkout --force
+}
+
+function git-svn-rebase() {
+  git svn fetch && \
+  git svn rebase && \
+  git-svn-update
 }
