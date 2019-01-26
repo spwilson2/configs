@@ -101,12 +101,14 @@ alias cd..='cd ..'
 alias l='ls'
 alias sl='ls'
 alias v="$EDITOR -n"
+alias retab='vim -s <(echo -e "ggVG:ReplaceTabs\n:CleanWh\nZZ")'
+alias pdfreader=evince
 
 
 # Green Hills
 alias locate1='locate -n1'
-alias unreserve='/home/apvalmart/rtos_val/tools/support/bfunreserve'
 alias cdi="cd_issue"
+alias cdh="/home/landshark/sean.wilson/home-stuff/dotfiles/subrepos/"
 alias cdw="cd /home/landshark/sean.wilson"
 alias cdb="cd /home/landshark/sean.wilson/git/origin"
 # alias gbas="sup && ./builds-ep/build_all.sh"
@@ -134,8 +136,6 @@ function ct() {
   wait ${_pids[0]}
   wait ${_pids[1]}
 }
-
-alias psirun="/home/apvalmart/rtos_val/psival/system/psirun.py"
 
 function _format_commit_message() {
   svn log -c "$@" http://rtosvc |\

@@ -14,9 +14,20 @@
         update = pull
         co = checkout
         cl = clone
+        dt = difftool --dir-diff
 [diff]
         compactionHeuristic = 1
 [credential]
 	helper = store
 [http]
 	cookiefile = /home/swilson/.gitcookies
+
+# Recommend using --dir-diff 
+[diff]
+    tool = meld
+[difftool]
+    prompt = false
+[difftool "meld"]
+    cmd = meld "$LOCAL" "$REMOTE"
+[merge]
+    renamelimit = 100000
