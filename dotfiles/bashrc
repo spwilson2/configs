@@ -34,7 +34,6 @@ fi
 
 ### Terminal Prompt
 # fancy colors for our prompt
-RST="\[\e[0m\]"   # reset
 BLD="\[\e[1m\]"   # hicolor
 UNL="\[\e[4m\]"   # underline
 INV="\[\e[7m\]"   # inverse background and foreground
@@ -54,6 +53,7 @@ BBLU="\[\e[44m\]" # background blue
 BMAG="\[\e[45m\]" # background magenta
 BCYN="\[\e[46m\]" # background cyan
 BWHT="\[\e[47m\]" # background white
+RST="\[\e[0m\]"   # reset
 
 # Test user type:
 if [[ ${USER} == "root" ]]; then
@@ -62,11 +62,22 @@ else
   SU="$FGRN"
 fi
 
+running_in_docker() {
+  awk -F/ '$2 == "docker"' /proc/self/cgroup | read
+}
+
+running_in_docker
+if [ $? -eq 0 ] ; then
+  DOCKER="-docker"
+else
+  DOCKER=""
+fi
+
 if [ "$color_prompt" = "yes" ]; then
-  PS1="$BLD$SU\u$FYEL@$FRED\h$RST $BLD$FBLU\w$RST \n$ "
+  PS1="$BLD$SU\u$FYEL@$FRED\h$DOCKER$RST $BLD$FBLU\w$RST \n$ "
   PS2="$BLD$FGRN> $RST"
 else
-  PS1='\u@\h \w\$ '
+  PS1='\u@\h'$DOCKER' \w\$ '
 fi
 
 # Use this if lesspipe.sh exists.
@@ -123,6 +134,7 @@ export GHS_LMWHICH="ghs"
 
 export MULTI_DIR=/home/multi/tools_devl/working
 export COMP_DIR=/home/compiler/tools_devl/working
+#export COMP_DIR=/home/compiler/tools_devl/devl-2019-03-09/
 export BRANCH_DIR=/home/landshark/sean.wilson/branches/
 
 PATH=/home/steeply/valmart/tools/dtc:${PATH}
