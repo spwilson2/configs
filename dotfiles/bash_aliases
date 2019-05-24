@@ -1,7 +1,86 @@
 #!/bin/bash
 
-function cdd() {
-  cd `dirname "$@"`
+alias Rotator.py="/home/tubman/valmart/scripts/Rotator.py"
+alias Rotator.py-debug="/home/shadyvalmart/valmart/scripts/Rotator.py"
+
+clone_rtos() {
+  ggit clone http://landshark.ghs.com:8880/sean.wilson/rtosvc.git $@
+}
+
+clone_trunk() {
+  clone_rtos "$@"
+  _dir="rtosvc"
+  if [ $# -gt 0 ] ; then
+    _dir=$1
+  fi
+
+  (cd "$_dir" &&
+    git checkout . &&
+    ./setup && 
+    ./products/integrity_additions_bto.sh)
+}
+
+export LOGS="/home/landshark2/sean.wilson/archive/"
+
+recurse_unzip() {
+  false
+  while [ ! $? -eq 0 ] ; do
+    find -name "*.zip" -exec bash -c "unzip \"{}\" && rm \"{}\"" \;
+    find -name "*.zip" -exec false {} \;
+  done
+}
+
+function psilogs() {
+  sfx=""
+  path="${LOGS}"
+
+  if [ ! "$1" = "" ] ; then
+    path="${path}/$1"
+  fi
+
+  mkdir -p "${path}" 1>/dev/null 2&>1 
+  dir="$(mktemp -d -p ${path} psilogs-XXXXX)"
+  printf -- "--summary $dir/summary.log -l $dir/log.log"
+}
+
+toolsdir=/home/steeply/valmart/tools/installed/716_201912/current/linux86
+alias _gbuild="${toolsdir}/gbuild"
+alias _multi="${toolsdir}/multi"
+
+function buildalmostall() {
+  _gbuild -cfg=debug "$@" &
+  _pids[0]=$!
+  _gbuild -cfg=checked "$@" &
+  _pids[1]=$!
+  _gbuild -cfg=release "$@" &
+  _pids[2]=$!
+
+  wait ${_pids[0]}
+  wait ${_pids[1]}
+  wait ${_pids[2]}
+}
+
+function buildall() {
+  _gbuild -cfg=debug "$@" &
+  _pids[0]=$!
+  _gbuild -cfg=checked "$@" &
+  _pids[1]=$!
+  _gbuild -cfg=release "$@" &
+  _pids[2]=$!
+  _gbuild -cfg=coverage "$@" &
+  _pids[3]=$!
+  _gbuild -cfg=mcdc "$@" &
+  _pids[3]=$!
+
+  wait ${_pids[0]}
+  wait ${_pids[1]}
+  wait ${_pids[2]}
+  wait ${_pids[3]}
+  wait ${_pids[4]}
+}
+
+function buildenv() {
+  bash -c "cd /home/landshark/sean.wilson/docker-scripts/release-builder/docker && make"
 }
 
 # See 'killps' for example of use.
@@ -111,9 +190,7 @@ alias pdfreader=evince
 # Green Hills
 alias locate1='locate -n1'
 alias cdi="cd_issue"
-alias cdh="/home/landshark/sean.wilson/home-stuff/dotfiles/subrepos/"
-alias cdw="cd /home/landshark/sean.wilson"
-alias cdb="cd /home/landshark/sean.wilson/git/origin"
+alias cda="cd /home/landshark2/sean.wilson/archive"
 # alias gbas="sup && ./builds-ep/build_all.sh"
 # alias svn16="/archive/subversion/1.6/subversion-1.6.9/subversion/svn/svn"
 # alias svn17="/archive/subversion/1.7/subversion-1.7.17/subversion/svn/svn"
