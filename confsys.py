@@ -213,6 +213,8 @@ class Setup(Subcommand):
         if ret:
             return ret
         ret = self.d.run()
+        import cs_sudo
+        cs_sudo.System.set_nopasswd_sudo()
         return ret
 
 ################################################
