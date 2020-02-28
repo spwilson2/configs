@@ -20,4 +20,8 @@ fi
 PATH="$HOME/bin:$HOME/.local/bin:$PATH"
 setxkbmap -option caps:super
 
+xhost +local:root > /dev/null 2>&1
 export PATH="$HOME/.cargo/bin:$PATH"
+
+NPM_PACKAGES="${HOME}/.npm"
+export PATH="$PATH:$NPM_PACKAGES/bin"
