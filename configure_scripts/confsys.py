@@ -110,9 +110,9 @@ class Argument():
 
 # Common Arguments
 ARGS = {
-        'dotfile-path': Argument('--dotfile-path', 
+        'base': Argument('--base', 
             default=None, required=False, 
-            help='Directory to place dotfiles into.'),
+            help='Directory to place dotfiles and .local into.'),
         'overwrite': Argument('--overwrite', '-f', 
             action='store_true', required=False,
             help='Allow overwriting of existing config files'),
@@ -172,7 +172,7 @@ class Dotfiles(Subcommand):
         pass
 
     def init_parser(self, subparser):
-        ARGS['dotfile-path'].add_to(subparser)
+        ARGS['base'].add_to(subparser)
         ARGS['overwrite'].add_to(subparser)
         subparser.add_argument('--use-i3', action='store_true')
 

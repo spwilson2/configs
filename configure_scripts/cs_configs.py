@@ -26,6 +26,10 @@ Xresources
 npmrc
 '''.split()
 
+BASHRCS = '''\
+ghs-bashrc
+'''
+
 # A list of files to simple drop and replace into the HOME directory.
 COPY_FILES = { f: os.path.join(HOME, '.' + f) for f in DOTFILES }
 
@@ -61,7 +65,6 @@ def mkdir_p(path):
             raise
 
 def dotfiles(overwrite, **kwargs):
-
     limit = 0
     for src, dst in COPY_FILES.items():
         src = os.path.join(PATH, src)
@@ -81,6 +84,14 @@ def dotfiles(overwrite, **kwargs):
         for src, dst in I3_FILES:
             symlink(src, dst, overwrite)
 
+def create_local(base, **kwargs):
+    '''Create the ~/.local directory'''
+    local_dir = os.path.join(base, '.local')
+    mkdir_p(local_dir)
+    bashrcs_dir = os.path.join(local_dir, 'bashrcs')
+    for f in BASHRCS:
+        src = os.path.join(PATH, f)
+        symlink(src, os.path.join(bashrcs_dir, f))
 
 # Comand to diff repo dotfiles with user's existing dotfiles
 def diff_dotfiles(config):

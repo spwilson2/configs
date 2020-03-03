@@ -1,4 +1,21 @@
-# If not running interactively, don't do anything
+export PATH="$HOME/.cargo/bin:$PATH"
+export PATH="$HOME/.local/bin:$PATH"
+export PATH="/usr/lib64/ccache:$PATH"
+NPM_PACKAGES="${HOME}/.npm"
+export PATH="$PATH:$NPM_PACKAGES/bin"
+
+if [ "" = "$DISPLAY" ] ; then
+  export EDITOR=vim
+else
+  export EDITOR=${HOME}/.editor
+fi
+
+# Below checks are because .profile sources this file.
+# If not running bash only export the above paths
+if [ -n "$BASH_VERSION" ]; then
+  return;
+fi
+# If not running interactively, don't do anything additional
 case $- in
     *i*) ;;
       *) return;;
@@ -7,9 +24,7 @@ esac
 # make less more friendly for non-text input files, see lesspipe(1)
 [ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
 
-# enable programmable completion features (you don't need to enable
-# this, if it's already enabled in /etc/bash.bashrc and /etc/profile
-# sources /etc/bash.bashrc).
+# Enable bash completion
 if ! shopt -oq posix; then
   if [ -f /usr/share/bash-completion/bash_completion ]; then
     . /usr/share/bash-completion/bash_completion
@@ -102,19 +117,10 @@ shopt -s checkjobs
 shopt -s cmdhist
 shopt -s histappend
 
-# don't put duplicate lines or lines starting with space in the history.
-# See bash(1) for more options
+# Don't put duplicate lines or lines starting with space in the history.
 HISTCONTROL=ignoredups
 
-export PATH="$HOME/.local/bin:$PATH"
-export PATH="/usr/lib64/ccache:$PATH"
 export PAGER=less
-
-if [ "" = "$DISPLAY" ] ; then
-  export EDITOR=vim
-else
-  export EDITOR=${HOME}/.editor
-fi
 
 # GHS Configuration
 # Host defines.....
@@ -138,5 +144,11 @@ export PYTHONPATH
 export PATH
 
 [ -f ~/.bash_aliases ] && source ~/.bash_aliases
-
 [ -f ~/.fzf.bash ] && source ~/.fzf.bash
+
+if [ -d ~/.local/bashrcs ]
+  bashrcs=`find $HOME/.local/bashrcs`
+  for f in "$bashrcs"; do
+    source "$f"
+  done
+fi
