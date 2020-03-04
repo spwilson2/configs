@@ -516,12 +516,12 @@ class Setup(Subcommand):
         self.s.post_process_args(parser, args)
 
     def run(self):
-        self.p.run()
-        self.d.run()
-        self.s.run()
         System.set_nopasswd_sudo()
         if self.p.distro == 'manjaro':
             Command('sudo pacman-mirrors --geoip'.split()).run()
+        self.p.run()
+        self.d.run()
+        self.s.run()
         return 0
 
 ################################################
