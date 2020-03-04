@@ -306,12 +306,22 @@ class Programs(Subcommand):
         subprocess.check_call("curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh", shell=True)
 
     @staticmethod
+    def install_ubuntu(packages):
+        Programs.install_apt(packages, update=True, upgrade=True, sudo=True)
+        Programs.install_rust()
+
+    @staticmethod
+    def install_manjaro(packages):
+        Command('sudo pacman-mirrors --geoip'.split()).run()
+        Programs.install_pacman(packages, update=True, upgrade=True, sudo=True)
+
+    @staticmethod
     def install_distro(distro, programs):
         installer = {
-                'manjaro': Programs.install_pacman,
-                'ubuntu': Programs.install_apt,
+                'manjaro': Programs.install_manjaro,
+                'ubuntu': Programs.install_ubuntu,
         }[distro]
-        installer(programs, update=True, upgrade=True, sudo=True)
+        installer(programs)
 
     def install_programs(self, distro, *options):
         programs = self.parse_program_config()
@@ -320,7 +330,6 @@ class Programs(Subcommand):
             program_list.extend(programs[distro][option])
 
         self.install_distro(distro, program_list)
-        self.install_rust()
 
     def run(self):
         self.install_programs(self.distro)
@@ -517,8 +526,6 @@ class Setup(Subcommand):
 
     def run(self):
         System.set_nopasswd_sudo()
-        if self.p.distro == 'manjaro':
-            Command('sudo pacman-mirrors --geoip'.split()).run()
         self.p.run()
         self.d.run()
         self.s.run()
