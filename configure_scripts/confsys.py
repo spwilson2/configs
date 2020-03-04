@@ -8,6 +8,7 @@ definitions and overlays.
 import argparse
 import configparser
 import errno
+import getpass
 import os
 import re
 import shutil
@@ -141,7 +142,6 @@ ARGS = {
 
 def symlink(src, dst, force=False):
     '''Create a symbolic link pointing to src at path dst.'''
-    print(src, dst)
     try:
         os.symlink(src, dst)
     except OSError:
@@ -177,14 +177,14 @@ def link_files(overwrite, files):
     def print_linked(src, dst):
         print('\t%s -> %s' % (dst, src))
 
-    failures = linked[False]
-    if failures:
+    if linked[False]:
         print('The following symlinks could not be created:')
-        for src,dst in failures:
+        for src,dst in linked[False]:
             print_linked(src, dst)
-    print('The following symlinks were successfully created:')
-    for src,dst in linked[True]:
-        print_linked(src, dst)
+    if linked[True]:
+        print('The following symlinks were successfully created:')
+        for src,dst in linked[True]:
+            print_linked(src, dst)
 
 # Script utilities
 #############################
@@ -213,8 +213,8 @@ class System:
     @staticmethod
     def set_nopasswd_sudo():
         script = ('from %s import System; System._set_nopasswd_sudo(\'%s\')'
-            % (System.module_name(), USERNAME))
-        subprocess.check_call('sudo python -c "%s"' % script, cwd=DIR)
+            % (System.module_name(), getpass.getuser()))
+        subprocess.check_call('sudo python -c "%s"' % script, shell=True, cwd=DIR)
 
 
 class Programs(Subcommand):
@@ -311,7 +311,6 @@ class Programs(Subcommand):
 
     def install_programs(self, distro, *options):
         programs = self.parse_program_config()
-        print( programs)
         program_list = programs[distro]['default']
         for option in options:
             program_list.extend(programs[distro][option])
@@ -470,7 +469,6 @@ class Dotfiles(Subcommand):
 
             src = keys.pop('src', None)
             dst = keys.pop('dst', None)
-            print(keys)
             assert not keys
 
             if src and dst:
@@ -481,8 +479,9 @@ class Dotfiles(Subcommand):
 
     def setup_dotfiles(self, overwrite, root):
         dirs, dotfiles = self.parse_dotfile_config(root)
+        print('Creating the following directories:')
         for d in dirs:
-            print('mkdir -p %s' % d)
+            print('\t%s' % d)
             mkdir_p(d)
         link_files(overwrite, dotfiles)
 
