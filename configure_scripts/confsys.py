@@ -277,6 +277,10 @@ class Programs(Subcommand):
         Command(cmd).run()
 
     @staticmethod
+    def install_rust():
+        subprocess.check_call("curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh", shell=True)
+
+    @staticmethod
     def install_distro(distro, programs):
         installer = {
                 'manjaro': Programs.install_pacman,
@@ -290,6 +294,8 @@ class Programs(Subcommand):
         program_list = programs[distro]['default']
         for option in options:
             program_list.extend(programs[distro][option])
+
+        self.install_rust()
         self.install_distro(distro, program_list)
 
     def run(self):
@@ -304,9 +310,11 @@ class Subrepos(Subcommand):
 
     def init_parser(self, subparser):
         ARGS['overwrite'].add_to(subparser)
+        subparser.add_argument('--rerun', action='store_true', help='Rerun setup scripts')
 
     def post_process_args(self, parser, args):
         self.overwrite = args.overwrite
+        self.rerun = args.rerun
 
     @staticmethod
     def parse_subrepo_config():
@@ -335,30 +343,35 @@ class Subrepos(Subcommand):
             assert not key
         return subrepos
 
-    def setup_subrepos(self, overwrite):
+    @staticmethod
+    def clone(name, info, overwrite):
+        cmd = 'git clone'.split() + [info['remote'], name]
+        branch = info['branch']
+        if branch:
+            cmd.extend(['-b', branch])
+
+        exists = os.path.exists(name) 
+        if exists and not overwrite:
+            print('Git subrepo \'%s\' already exists' % name)
+            return False
+        if exists and overwrite:
+            print('Removing "%s"' % name)
+            shutil.rmtree(name)
+        print(cmd)
+        subprocess.check_call(cmd)
+        return True
+
+    def setup_subrepos(self, rerun, overwrite):
         subrepos = self.parse_subrepo_config()
         for name, info in subrepos.items():
-            cmd = 'git clone'.split() + [info['remote'], name]
-            branch = info['branch']
+            installed = self.clone(name, info, overwrite)
             setup = info['setup']
-            if branch:
-                cmd.extend(['-b', branch])
-
-
-            if os.path.exists(name) and not overwrite:
-                print('Git subrepo \'%s\' already exists' % name)
-            else:
-                if overwrite:
-                    print('Removing "%s"' % name)
-                    shutil.rmtree(name)
-                print(cmd)
-                subprocess.check_call(cmd)
-                if setup:
-                    setup = os.path.join(name, setup)
-                    subprocess.check_call(setup)
+            if (installed or rerun) and setup:
+                setup = os.path.join(name, setup)
+                subprocess.check_call(setup)
 
     def run(self):
-        self.setup_subrepos(self.overwrite)
+        self.setup_subrepos(self.rerun, self.overwrite)
         return 0
 
 class Dotfiles(Subcommand):
