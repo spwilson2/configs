@@ -10,6 +10,7 @@ import configparser
 import errno
 import os
 import re
+import shutil
 import subprocess
 import sys
 
@@ -138,6 +139,12 @@ def mkdir_p(path):
             pass
         else:
             raise
+
+
+def join(abspath, partial):
+    if partial.startswith('/'):
+        return partial
+    return os.path.join(abspath, partial)
 
 
 def link_files(overwrite, files):
@@ -287,6 +294,72 @@ class Programs(Subcommand):
 
     def run(self):
         self.install_programs(self.distro)
+        return 0
+
+
+class Subrepos(Subcommand):
+    name = 'subrepos'
+    DEST = os.path.join(DIR, '../subrepos')
+    CFG_PATH = os.path.join(DIR, 'subrepos.cfg')
+
+    def init_parser(self, subparser):
+        ARGS['overwrite'].add_to(subparser)
+
+    def post_process_args(self, parser, args):
+        self.overwrite = args.overwrite
+
+    @staticmethod
+    def parse_subrepo_config():
+        items = parse_config(Subrepos.CFG_PATH)
+        # return: 
+        # [
+        # {
+        #   'remote': path,
+        #   'branch': master,
+        #   'name': name
+        # }
+        # ]
+
+        subrepos = {}
+        for name, key in items.items():
+            name = key.pop('name', name)
+            name = join(Subrepos.DEST, name)
+            remote = key.pop('remote')
+            branch = key.pop('branch', None)
+            setup = key.pop('setup', None)
+            subrepos[name] = {
+                    'remote': remote,
+                    'setup': setup,
+                    'branch': branch,
+                    }
+            assert not key
+        return subrepos
+
+    def setup_subrepos(self, overwrite):
+        subrepos = self.parse_subrepo_config()
+        for name, info in subrepos.items():
+            cmd = 'git clone'.split() + [info['remote'], name]
+            branch = info['branch']
+            setup = info['setup']
+            if branch:
+                cmd.extend(['-b', branch])
+
+
+            if os.path.exists(name) and not overwrite:
+                print('Git subrepo \'%s\' already exists' % name)
+            else:
+                if overwrite:
+                    print('Removing "%s"' % name)
+                    shutil.rmtree(name)
+                print(cmd)
+                subprocess.check_call(cmd)
+                if setup:
+                    setup = os.path.join(name, setup)
+                    subprocess.check_call(setup)
+
+    def run(self):
+        self.setup_subrepos(self.overwrite)
+        return 0
 
 class Dotfiles(Subcommand):
     '''
@@ -311,11 +384,6 @@ class Dotfiles(Subcommand):
     def parse_dotfile_config(root):
         items = parse_config(Dotfiles.CFG_PATH)
         #import pdb;pdb.set_trace()
-
-        def join(abspath, partial):
-            if partial.startswith('/'):
-                return partial
-            return os.path.join(abspath, partial)
 
         # Attributes
         # Default is special
