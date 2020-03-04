@@ -1,0 +1,21 @@
+FROM manjarolinux/base
+
+# Cache updates
+RUN yes | pacman -Syu
+
+
+ENV PROGRAMS git sudo python3 vim
+RUN yes | pacman -Syu ${PROGRAMS}
+
+ARG USER
+RUN useradd --badnames -p password -U -m ${USER}
+# No sudoers group by default.
+RUN echo "${USER} ALL=(ALL) ALL" >> /etc/sudoers
+#RUN usermod ${USER} -a -G sudo
+
+#RUN  passwd ${USER}
+# Add user as a nopasswd sudoer
+RUN echo "${USER}:password" | chpasswd
+USER ${USER}
+RUN cd ~ \
+    && git clone https://github.com/spwilson2/configs ~/dotfiles

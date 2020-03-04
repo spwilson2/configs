@@ -1,0 +1,24 @@
+FROM ubuntu:16.04
+
+# Cache updates
+RUN \
+ apt-get update \
+ && apt-get -y -q upgrade \
+ && apt-get clean
+
+
+ENV PROGRAMS git sudo python3 build-essential vim
+RUN dpkg --add-architecture i386 \
+ && apt-get update \
+ && apt-get -y -q upgrade \
+ && apt-get -y -q install ${PROGRAMS} \
+ && apt-get clean
+
+ARG USER
+RUN useradd -U -m ${USER}
+RUN usermod ${USER} -a -G sudo
+RUN echo "password\npassword" | passwd ${USER}
+# Add user as a nopasswd sudoer
+USER ${USER}
+RUN cd ~ \
+    && git clone https://github.com/spwilson2/configs ~/dotfiles
