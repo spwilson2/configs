@@ -204,10 +204,7 @@ class System:
 
     @staticmethod
     def module_name():
-        if __name__ == '__main__':
-            return os.path.splitext(os.path.basename(__file__))[0]
-        else:
-            raise NotImplemented
+        return os.path.splitext(os.path.basename(__file__))[0]
 
 
     @staticmethod
