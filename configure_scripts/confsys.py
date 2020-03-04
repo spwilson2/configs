@@ -5,8 +5,9 @@ from __future__ import print_function
 This script is used to setup and configure a new system using custom config
 definitions and overlays.
 '''
-
 import argparse
+import configparser
+import errno
 import os
 import re
 import subprocess
@@ -14,26 +15,13 @@ import sys
 
 #############################
 # Constants
+DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 # Constants
 #############################
-
 
 # Use bitbake as a sort of example
 # Setup files will be exec'd
 #
-
-# Core capabilities:
-# - Overlays:
-#   - diffs
-#   - sed replace
-# - Full configs:
-#  - vimrc, vim, bashrc, profile
-# - Dependencies 
-#  - High-order configs - e.g. Ubuntu
-#   - Lower-order e.g. 
-# - Options:
-#   - e.g. GHS
-
 class Command():
     def __init__(self, *args, **kwargs):
         self.args = args
@@ -51,6 +39,13 @@ PRINTV = [True]
 def _print(*args, **kwargs):
     if PRINTV[0]:
         print(*args, **kwargs)
+
+def parse_config(filename):
+    assert os.path.exists(filename)
+    cfg = configparser.ConfigParser()
+    cfg.read(filename)
+    items = {sec: dict(cfg.items(sec)) for sec in cfg.sections()}
+    return items
 
 # ABC for subcommands
 class Subcommand(object):
@@ -110,8 +105,8 @@ class Argument():
 
 # Common Arguments
 ARGS = {
-        'base': Argument('--base', 
-            default=None, required=False, 
+        'root': Argument('--root', 
+            default=os.path.abspath('~'), required=False, 
             help='Directory to place dotfiles and .local into.'),
         'overwrite': Argument('--overwrite', '-f', 
             action='store_true', required=False,
@@ -122,13 +117,84 @@ ARGS = {
             '(otherwise automatically detected).'))
 }
 
+def symlink(src, dst, force=False):
+    '''Create a symbolic link pointing to src at path dst.'''
+    print(src, dst)
+    try:
+        os.symlink(src, dst)
+    except OSError:
+        if not force:
+            return False
+        os.remove(dst)
+        os.symlink(src, dst)
+    return True
+
+
+def mkdir_p(path):
+    try:
+        os.makedirs(path)
+    except OSError as exc:  # Python ≥ 2.5
+        if exc.errno == errno.EEXIST and os.path.isdir(path):
+            pass
+        else:
+            raise
+
+
+def link_files(overwrite, files):
+    linked = {True: [], False: []}
+    for src, dst in files.items():
+        res = symlink(src, dst, overwrite)
+        linked[res].append((src, dst))
+
+    def print_linked(src, dst):
+        print('\t%s -> %s' % (dst, src))
+
+    failures = linked[False]
+    if failures:
+        print('The following symlinks could not be created:')
+        for src,dst in failures:
+            print_linked(src, dst)
+    print('The following symlinks were successfully created:')
+    for src,dst in linked[True]:
+        print_linked(src, dst)
+
 # Script utilities
 #############################
+class System:
+    @staticmethod
+    def _set_nopasswd_sudo(username):
+        SUDOER_ENTRY = '{} ALL=(ALL:ALL) NOPASSWD:ALL\n'.format(username)
+        sudoer_file = '/etc/sudoers'
+        # Check if we are already in sudoers
+        with open(sudoer_file, 'r') as sudoers:
+            for line in sudoers.readlines():
+                if line.strip() == SUDOER_ENTRY:
+                    print("Already in sudoer's file!")
+                    return
+        with open(sudoer_file, 'a') as sudoers:
+            sudoers.write(SUDOER_ENTRY)
+
+    @staticmethod
+    def module_name():
+        if __name__ == '__main__':
+            return os.path.splitext(os.path.basename(__file__))[0]
+        else:
+            raise NotImplemented
+
+
+    @staticmethod
+    def set_nopasswd_sudo():
+        script = ('from %s import System; System._set_nopasswd_sudo(\'%s\')'
+            % (System.module_name(), USERNAME))
+        subprocess.check_call('sudo python -c "%s"' % script, cwd=DIR)
+
+
 class Programs(Subcommand):
     '''
     Manage programs.
     '''
     name = 'programs'
+    PROGRAM_CFG = os.path.join(DIR, 'programs.cfg')
     def __init__(self):
         pass
 
@@ -152,41 +218,146 @@ class Programs(Subcommand):
             if not self.distro:
                 raise ValueError('Unable to detect distro.')
 
+    @staticmethod
+    def parse_program_config():
+        items = parse_config(Programs.PROGRAM_CFG)
+
+        # Return into a dict with format:
+        # {distro: {
+        #   option: [program, program]
+        # }
+
+        programs = {}
+        for _heading, keys in items.items():
+            distro = keys.pop('distro')
+            option = keys.pop('option')
+            progs = keys.pop('programs')
+            progs = progs.split()
+            assert not keys
+            if distro not in programs:
+                programs[distro] = {}
+            programs[distro][option] = progs
+        return programs
+
+    @staticmethod
+    def install_pacman(packages, update=False, upgrade=False, sudo=False):
+        cmd = ''
+        if sudo:
+            cmd += 'sudo'
+
+        cmd += ' pacman -S'
+        if update:
+            cmd += 'yu'
+
+        cmd = cmd.split() + packages
+        Command(cmd).run()
+
+    @staticmethod
+    def install_apt(packages, update=False, upgrade=False, sudo=False):
+        pfx = ''
+        if sudo:
+            pfx += 'sudo'
+        pfx += ' apt-get '
+        if update:
+            cmd = pfx + 'update -y'
+            Command(cmd.split()).run()
+        if upgrade:
+            cmd = pfx + 'dist-upgrade -y'
+            Command(cmd.split()).run()
+
+        cmd = pfx + ' install -y'
+        cmd = cmd.split() + packages
+        Command(cmd).run()
+
+    @staticmethod
+    def install_distro(distro, programs):
+        installer = {
+                'manjaro': Programs.install_pacman,
+                'ubuntu': Programs.install_apt,
+        }[distro]
+        installer(programs, update=True, upgrade=True, sudo=True)
+
+    def install_programs(self, distro, *options):
+        programs = self.parse_program_config()
+        print( programs)
+        program_list = programs[distro]['default']
+        for option in options:
+            program_list.extend(programs[distro][option])
+        self.install_distro(distro, program_list)
+
     def run(self):
-        import cs_programs
-        kwargs = {
-                'distro': self.distro,
-                'update': False,
-                'upgrade': False,
-                'sudo':False,
-                }
-        cs_programs.install(**kwargs)
-        return 0
+        self.install_programs(self.distro)
 
 class Dotfiles(Subcommand):
     '''
     Manage dotfiles/configs.
     '''
     name = 'dotfiles'
+    SRC_PATH = os.path.join(DIR, '../dotfiles')
+    CFG_PATH = os.path.join(DIR, 'dotfiles.cfg')
+
     def __init__(self):
         pass
 
     def init_parser(self, subparser):
-        ARGS['base'].add_to(subparser)
+        ARGS['root'].add_to(subparser)
         ARGS['overwrite'].add_to(subparser)
-        subparser.add_argument('--use-i3', action='store_true')
 
     def post_process_args(self, parser, args):
         self.overwrite = args.overwrite
-        self.use_i3 = args.use_i3
+        self.root = args.root
+
+    @staticmethod
+    def parse_dotfile_config(root):
+        items = parse_config(Dotfiles.CFG_PATH)
+        #import pdb;pdb.set_trace()
+
+        def join(abspath, partial):
+            if partial.startswith('/'):
+                return partial
+            return os.path.join(abspath, partial)
+
+        # Attributes
+        # Default is special
+        src_dotfiles = items.pop('Default').pop('srcs').splitlines()
+        src_dotfiles = (d for d in src_dotfiles if d)
+        dotfiles = {}
+        dirs = []
+        for f in src_dotfiles:
+            src = join(Dotfiles.SRC_PATH, f)
+            dst = join(root, '.' + f)
+            dotfiles[src] = dst
+
+        ACCEPTED_KEYS = ['src', 'dst', 'dir']
+        for _tag, keys in items.items():
+            for key in keys:
+                if key not in ACCEPTED_KEYS:
+                    raise Exception('Invalid key "%s" in "%s"' % (key, Dotfiles.CFG_PATH))
+
+            d = keys.pop('dir', None)
+            if d:
+                dirs.append(join(root, d))
+
+            src = keys.pop('src', None)
+            dst = keys.pop('dst', None)
+            print(keys)
+            assert not keys
+
+            if src and dst:
+                src = join(Dotfiles.SRC_PATH, src)
+                dst = join(root, dst)
+                dotfiles[src] = dst
+        return dirs, dotfiles
+
+    def setup_dotfiles(self, overwrite, root):
+        dirs, dotfiles = self.parse_dotfile_config(root)
+        for d in dirs:
+            print('mkdir -p %s' % d)
+            mkdir_p(d)
+        link_files(overwrite, dotfiles)
 
     def run(self):
-        import cs_configs
-        kwargs = {
-                'overwrite': self.overwrite,
-                'i3': self.use_i3
-                }
-        cs_configs.dotfiles(**kwargs)
+        self.setup_dotfiles(self.overwrite, self.root)
         return 0
 
 class Setup(Subcommand):
@@ -209,13 +380,10 @@ class Setup(Subcommand):
         self.d.post_process_args(parser, args)
 
     def run(self):
-        ret = self.p.run()
-        if ret:
-            return ret
-        ret = self.d.run()
-        import cs_sudo
-        cs_sudo.System.set_nopasswd_sudo()
-        return ret
+        self.p.run()
+        self.d.run()
+        System.set_nopasswd_sudo()
+        return 0
 
 ################################################
 # Boilerplate for a standalone importable script
