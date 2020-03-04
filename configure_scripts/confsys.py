@@ -269,7 +269,7 @@ class Programs(Subcommand):
 
     @staticmethod
     def install_pacman(packages, update=False, upgrade=False, sudo=False):
-        cmd = ' yes | '
+        cmd = ''
         if sudo:
             cmd += ' sudo '
 
@@ -278,6 +278,8 @@ class Programs(Subcommand):
             cmd += ' -y '
         if upgrade:
             cmd += ' -u '
+
+        cmd += ' --needed --noconfirm '
 
         cmd = cmd + ' '.join(packages)
         Command(cmd, shell=True).run()
