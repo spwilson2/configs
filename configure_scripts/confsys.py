@@ -279,7 +279,7 @@ class Programs(Subcommand):
         if upgrade:
             cmd += ' -u '
 
-        cmd += ' --needed --noconfirm '
+        cmd += ' --needed '
 
         cmd = cmd + ' '.join(packages)
         Command(cmd, shell=True).run()
