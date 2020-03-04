@@ -130,6 +130,9 @@ class Argument():
             return ret
 
 # Common Arguments
+OPTIONS = [
+        'ghs',
+        ]
 ARGS = {
         'root': Argument('--root', 
             default=os.path.expanduser('~'), required=False, 
@@ -137,6 +140,9 @@ ARGS = {
         'overwrite': Argument('--overwrite', '-f', 
             action='store_true', required=False,
             help='Allow overwriting of existing config files'),
+        'option': Argument('--option',
+            action='append', required=False,
+            help='Enable an optional component of the config. Available: %s' % OPTIONS),
         'distro': Argument('--distro', 
             required=False,
             help=('Manually specify the distro to use '
@@ -344,6 +350,7 @@ class Subrepos(Subcommand):
     def init_parser(self, subparser):
         ARGS['overwrite'].add_to(subparser)
         ARGS['root'].add_to(subparser)
+        ARGS['option'].add_to(subparser)
         subparser.add_argument('--rerun', action='store_true', help='Rerun setup scripts')
         subparser.add_argument('--relink', action='store_true', help='Relink all scripts in subrepos')
 
@@ -352,6 +359,7 @@ class Subrepos(Subcommand):
         self.root = args.root
         self.rerun = args.rerun
         self.relink = args.relink
+        self.options = args.option
 
     @staticmethod
     def parse_subrepo_config():
@@ -366,20 +374,23 @@ class Subrepos(Subcommand):
         # ]
 
         subrepos = {}
-        for name, key in items.items():
-            name = key.pop('name', name)
+        for handle, key in items.items():
+            name = key.pop('name', handle)
             name = join(Subrepos.DEST, name)
             remote = key.pop('remote')
             branch = key.pop('branch', None)
             setup = key.pop('setup', None)
             autolink = key.pop('autolink', '')
+            option = key.pop('option', None)
             if autolink.lower() == 'true':
                 autolink = True
             subrepos[name] = {
+                    'handle': handle,
                     'remote': remote,
                     'setup': setup,
                     'branch': branch,
                     'autolink': autolink,
+                    'option': option,
                     }
             assert not key
         return subrepos
@@ -418,9 +429,15 @@ class Subrepos(Subcommand):
         subprocess.check_call(cmd)
         return True
 
-    def setup_subrepos(self, root, relink, rerun, overwrite):
+    def setup_subrepos(self, root, relink, rerun, overwrite, *options):
         subrepos = self.parse_subrepo_config()
         for name, info in subrepos.items():
+            if info['option'] is not None:
+                if info['option'] not in options:
+                    print('Optional subrepo %s skipped.' % info['handle'])
+                    print('\t --option %s was not provided.' % info['option'])
+                    continue
+
             installed = self.clone(name, info, overwrite)
             setup = info['setup']
             link = info['autolink']
@@ -432,7 +449,7 @@ class Subrepos(Subcommand):
 
 
     def run(self):
-        self.setup_subrepos(self.root, self.relink, self.rerun, self.overwrite)
+        self.setup_subrepos(self.root, self.relink, self.rerun, self.overwrite, *self.options)
         return 0
 
 class Dotfiles(Subcommand):
