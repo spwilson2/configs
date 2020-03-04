@@ -41,6 +41,21 @@ def _print(*args, **kwargs):
     if PRINTV[0]:
         print(*args, **kwargs)
 
+def splitall(path):
+    allparts = []
+    while 1:
+        parts = os.path.split(path)
+        if parts[0] == path:  # sentinel for absolute paths
+            allparts.insert(0, parts[0])
+            break
+        elif parts[1] == path: # sentinel for relative paths
+            allparts.insert(0, parts[1])
+            break
+        else:
+            path = parts[0]
+            allparts.insert(0, parts[1])
+    return allparts
+
 def parse_config(filename):
     assert os.path.exists(filename)
     cfg = configparser.ConfigParser()
@@ -102,12 +117,18 @@ class Argument():
             self.add_to(self._bogus_parser)
 
     def add_to(self, parser):
-        return parser.add_argument(*self.args, **self.kwargs)
+        key = '__args__'
+        if not key in parser.__dict__:
+            parser.__dict__[key] = set([])
+        if self not in parser.__dict__[key]:
+            ret = parser.add_argument(*self.args, **self.kwargs)
+            parser.__dict__[key].add(self)
+            return ret
 
 # Common Arguments
 ARGS = {
         'root': Argument('--root', 
-            default=os.path.abspath('~'), required=False, 
+            default=os.path.expanduser('~'), required=False, 
             help='Directory to place dotfiles and .local into.'),
         'overwrite': Argument('--overwrite', '-f', 
             action='store_true', required=False,
@@ -310,11 +331,15 @@ class Subrepos(Subcommand):
 
     def init_parser(self, subparser):
         ARGS['overwrite'].add_to(subparser)
+        ARGS['root'].add_to(subparser)
         subparser.add_argument('--rerun', action='store_true', help='Rerun setup scripts')
+        subparser.add_argument('--relink', action='store_true', help='Relink all scripts in subrepos')
 
     def post_process_args(self, parser, args):
         self.overwrite = args.overwrite
+        self.root = args.root
         self.rerun = args.rerun
+        self.relink = args.relink
 
     @staticmethod
     def parse_subrepo_config():
@@ -335,13 +360,33 @@ class Subrepos(Subcommand):
             remote = key.pop('remote')
             branch = key.pop('branch', None)
             setup = key.pop('setup', None)
+            autolink = key.pop('autolink', '')
+            if autolink.lower() == 'true':
+                autolink = True
             subrepos[name] = {
                     'remote': remote,
                     'setup': setup,
                     'branch': branch,
+                    'autolink': autolink,
                     }
             assert not key
         return subrepos
+
+    @staticmethod
+    def autolink(path, root, overwrite):
+        # NOTE This method depends on completion of the dotfiles setup.
+        root = join(root, '.local/bin')
+        IGNORE = '.git'
+        files = {}
+        for path, dirs, fnames in os.walk(path):
+            if IGNORE in splitall(path):
+                continue
+            for fname in fnames:
+                src = os.path.join(path, fname)
+                if os.access(src, os.X_OK):
+                    dst = os.path.join(root, fname)
+                    files[src] = dst
+        link_files(overwrite, files)
 
     @staticmethod
     def clone(name, info, overwrite):
@@ -361,17 +406,21 @@ class Subrepos(Subcommand):
         subprocess.check_call(cmd)
         return True
 
-    def setup_subrepos(self, rerun, overwrite):
+    def setup_subrepos(self, root, relink, rerun, overwrite):
         subrepos = self.parse_subrepo_config()
         for name, info in subrepos.items():
             installed = self.clone(name, info, overwrite)
             setup = info['setup']
+            link = info['autolink']
             if (installed or rerun) and setup:
                 setup = os.path.join(name, setup)
                 subprocess.check_call(setup)
+            if (installed or relink) and link:
+                self.autolink(name, root, overwrite)
+
 
     def run(self):
-        self.setup_subrepos(self.rerun, self.overwrite)
+        self.setup_subrepos(self.root, self.relink, self.rerun, self.overwrite)
         return 0
 
 class Dotfiles(Subcommand):
@@ -451,18 +500,22 @@ class Setup(Subcommand):
         self._sentinel = object()
         self.p = Programs()
         self.d = Dotfiles()
+        self.s = Subrepos()
 
     def init_parser(self, subparser):
         self.p.init_parser(subparser)
         self.d.init_parser(subparser)
+        self.s.init_parser(subparser)
 
     def post_process_args(self, parser, args):
         self.p.post_process_args(parser, args)
         self.d.post_process_args(parser, args)
+        self.s.post_process_args(parser, args)
 
     def run(self):
         self.p.run()
         self.d.run()
+        self.s.run()
         System.set_nopasswd_sudo()
         return 0
 
