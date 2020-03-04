@@ -315,8 +315,8 @@ class Programs(Subcommand):
         for option in options:
             program_list.extend(programs[distro][option])
 
-        self.install_rust()
         self.install_distro(distro, program_list)
+        self.install_rust()
 
     def run(self):
         self.install_programs(self.distro)
