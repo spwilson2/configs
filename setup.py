@@ -2,5 +2,7 @@
 import configure_scripts.confsys as confsys
 
 if __name__ == '__main__':
-    args = ['setup']
+    print('Warning! Setup will overwrite existing .rc files.')
+    input('Press enter to continue: ')
+    args = ['setup', '-f']
     confsys.main(args)
