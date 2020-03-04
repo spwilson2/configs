@@ -269,16 +269,18 @@ class Programs(Subcommand):
 
     @staticmethod
     def install_pacman(packages, update=False, upgrade=False, sudo=False):
-        cmd = ''
+        cmd = ' yes | '
         if sudo:
-            cmd += 'sudo'
+            cmd += ' sudo '
 
-        cmd += ' pacman -S'
+        cmd += ' pacman -S '
         if update:
-            cmd += 'yu'
+            cmd += ' -y '
+        if upgrade:
+            cmd += ' -u '
 
-        cmd = cmd.split() + packages
-        Command(cmd).run()
+        cmd = cmd + ' '.join(packages)
+        Command(cmd, shell=True).run()
 
     @staticmethod
     def install_apt(packages, update=False, upgrade=False, sudo=False):
@@ -516,6 +518,8 @@ class Setup(Subcommand):
         self.d.run()
         self.s.run()
         System.set_nopasswd_sudo()
+        if self.p.distro == 'manjaro':
+            Command('sudo pacman-mirrors --geoip'.split()).run()
         return 0
 
 ################################################
