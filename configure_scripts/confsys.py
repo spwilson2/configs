@@ -6,7 +6,10 @@ This script is used to setup and configure a new system using custom config
 definitions and overlays.
 '''
 import argparse
-import configparser
+try:
+    from configparser import ConfigParser
+except:
+    from ConfigParser import SafeConfigParser as ConfigParser
 import errno
 import getpass
 import os
@@ -59,7 +62,7 @@ def splitall(path):
 
 def parse_config(filename):
     assert os.path.exists(filename)
-    cfg = configparser.ConfigParser()
+    cfg = ConfigParser()
     cfg.read(filename)
     items = {sec: dict(cfg.items(sec)) for sec in cfg.sections()}
     return items
