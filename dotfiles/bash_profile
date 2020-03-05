@@ -1,3 +1,4 @@
 [ -f ~/.bashrc ] && source ~/.bashrc
 [ -f /shared/.bash_profile ] && source /shared/.bash_profile
 [ -f ~/.profile ] && source ~/.profile
+[ -f ~/.sharedrc ] && source ~/.sharedrc

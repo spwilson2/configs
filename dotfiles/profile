@@ -1,8 +1,6 @@
 #!/bin/sh
 
-if [ -f "$HOME/.bashrc" ]; then
-    . "$HOME/.bashrc"
-fi
+[ -f ~/.sharedrc ] && source ~/.sharedrc
 
 setxkbmap -option caps:super
 xhost +local:root > /dev/null 2>&1

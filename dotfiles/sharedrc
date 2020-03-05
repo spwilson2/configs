@@ -1,0 +1,42 @@
+#!/bin/sh
+
+if [ "" = "$DISPLAY" ] ; then
+  export EDITOR=vim
+else
+  export EDITOR=${HOME}/.editor
+fi
+
+export PATH="$HOME/.cargo/bin:$PATH"
+export PATH="$HOME/.local/bin:$PATH"
+export PATH="/usr/lib64/ccache:$PATH"
+NPM_PACKAGES="${HOME}/.npm"
+export PATH="$PATH:$NPM_PACKAGES/bin"
+
+PATH=/home/steeply/valmart/tools/dtc:${PATH}
+PATH=${PATH}:${COMP_DIR}/linux86-comp-deploy
+PATH=${PATH}:${MULTI_DIR}/linux86-ide-deploy
+PATH=${PATH}:${MULTI_DIR}/sitescripts
+PATH=${RTOS_DIR}/privutils/svn_commit:${PATH}
+PATH=${RTOS_DIR}/privutils/gcomponent:${PATH}
+PATH=${PATH}:/archive/script
+PATH=${PATH}:/home/advprod/crucible
+PYTHONPATH=${RTOS_DIR}/privutils/gcomponent:${PYTHONPATH}
+export PYTHONPATH
+export PATH
+
+
+# GHS Configuration
+export GHS_LMHOST="#ghslm1,ghslm2,ghslm3"
+export GHS_LMWHICH="ghs"
+
+export MULTI_DIR=/home/multi/tools_devl/working
+export COMP_DIR=/home/compiler/tools_devl/working
+export BRANCH_DIR=/home/landshark/sean.wilson/branches/
+
+
+if [ -d ~/.local/bashrcs ] ; then
+  bashrcs=$(find "$HOME/.local/bashrcs" -type f)
+  for f in $bashrcs; do
+    source "$f"
+  done
+fi
