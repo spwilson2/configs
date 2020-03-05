@@ -320,6 +320,7 @@ class Programs(Subcommand):
     def install_manjaro(packages):
         Command('sudo pacman-mirrors --geoip'.split()).run()
         Programs.install_pacman(packages, update=True, upgrade=True, sudo=True)
+        Command('rustup install stable'.split()).run()
 
     @staticmethod
     def install_distro(distro, programs):
@@ -359,7 +360,10 @@ class Subrepos(Subcommand):
         self.root = args.root
         self.rerun = args.rerun
         self.relink = args.relink
-        self.options = args.option
+        options = args.option
+        if options is None:
+            options = []
+        self.options = options
 
     @staticmethod
     def parse_subrepo_config():
