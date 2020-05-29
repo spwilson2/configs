@@ -480,18 +480,23 @@ class Dotfiles(Subcommand):
         items = parse_config(Dotfiles.CFG_PATH)
         #import pdb;pdb.set_trace()
 
+            
         # Attributes
         # Default is special
         src_dotfiles = items.pop('Default').pop('srcs').splitlines()
         src_dotfiles = (d for d in src_dotfiles if d)
         dotfiles = {}
         dirs = []
-        for f in src_dotfiles:
-            src = join(Dotfiles.SRC_PATH, f)
-            dst = join(root, '.' + f)
+
+        def build_link(src, dst):
+            src = join(Dotfiles.SRC_PATH, src)
             dotfiles[src] = dst
 
-        ACCEPTED_KEYS = ['src', 'dst', 'dir']
+        for f in src_dotfiles:
+            build_link('.'+f, dst = join(root, '.' + f))
+
+
+        ACCEPTED_KEYS = ['srcs', 'src', 'dst', 'dir']
         for _tag, keys in items.items():
             for key in keys:
                 if key not in ACCEPTED_KEYS:
@@ -501,18 +506,21 @@ class Dotfiles(Subcommand):
             if d:
                 dirs.append(join(root, d))
 
+            srcs = keys.pop('srcs', None)
             src = keys.pop('src', None)
             dst = keys.pop('dst', None)
             assert not keys
 
             if src and dst:
-                src = join(Dotfiles.SRC_PATH, src)
-                dst = join(root, dst)
-                dotfiles[src] = dst
+                build_link(src, dst)
+            if srcs:
+                for f in filter(None, srcs.splitlines()):
+                    build_link(f, join(root, dst))
         return dirs, dotfiles
 
     def setup_dotfiles(self, overwrite, root):
         dirs, dotfiles = self.parse_dotfile_config(root)
+        # import pdb;pdb.set_trace()
         print('Creating the following directories:')
         for d in dirs:
             print('\t%s' % d)
