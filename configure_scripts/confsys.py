@@ -134,16 +134,16 @@ OPTIONS = [
         'ghs',
         ]
 ARGS = {
-        'root': Argument('--root', 
-            default=os.path.expanduser('~'), required=False, 
+        'root': Argument('--root',
+            default=os.path.expanduser('~'), required=False,
             help='Directory to place dotfiles and .local into.'),
-        'overwrite': Argument('--overwrite', '-f', 
+        'overwrite': Argument('--overwrite', '-f',
             action='store_true', required=False,
             help='Allow overwriting of existing config files'),
         'option': Argument('--option',
             action='append', required=False,
             help='Enable an optional component of the config. Available: %s' % OPTIONS),
-        'distro': Argument('--distro', 
+        'distro': Argument('--distro',
             required=False,
             help=('Manually specify the distro to use '
             '(otherwise automatically detected).'))
@@ -368,7 +368,7 @@ class Subrepos(Subcommand):
     @staticmethod
     def parse_subrepo_config():
         items = parse_config(Subrepos.CFG_PATH)
-        # return: 
+        # return:
         # [
         # {
         #   'remote': path,
@@ -422,7 +422,7 @@ class Subrepos(Subcommand):
         if branch:
             cmd.extend(['-b', branch])
 
-        exists = os.path.exists(name) 
+        exists = os.path.exists(name)
         if exists and not overwrite:
             print('Git subrepo \'%s\' already exists' % name)
             return False
@@ -480,7 +480,7 @@ class Dotfiles(Subcommand):
         items = parse_config(Dotfiles.CFG_PATH)
         #import pdb;pdb.set_trace()
 
-            
+
         # Attributes
         # Default is special
         src_dotfiles = items.pop('Default').pop('srcs').splitlines()
@@ -517,6 +517,13 @@ class Dotfiles(Subcommand):
                 for f in filter(None, srcs.splitlines()):
                     build_link(f, join(root, dst))
         return dirs, dotfiles
+
+    def setup_notes(self, root):
+        mkdir_p(os.path.join(root, '.local/notes'))
+        p = subprocess.Popen('nextcloud')
+        ret = p.wait(timeout=.2)
+        if ret is not None:
+            raise subprocess.SubprocessError('nextcloud exited unexpectedly!')
 
     def setup_dotfiles(self, overwrite, root):
         dirs, dotfiles = self.parse_dotfile_config(root)
